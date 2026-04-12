@@ -15,6 +15,7 @@ bcrypt==3.2.2
 pre-commit
 langgraph
 langchain
+langchain-google-genai
 pytest
 pytest-asyncio
 httpx
