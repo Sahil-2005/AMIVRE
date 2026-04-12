@@ -28,11 +28,35 @@ The pipeline is invoked as an asynchronous celery background task. The task rece
 
 To test the entire flow end-to-end exactly as a user would, follow these steps locally:
 
-1. **Fire up the backend ecosystem:**
+1. **Start the Infrastructure (Redis & PostgreSQL)**:
+   You must have Docker running. Run these commands to spin up the required databases *before* starting the backend:
+   ```bash
+   docker run -d -p 6379:6379 --name redis redis
+   docker run -d -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=password -e POSTGRES_DB=amivre --name postgres postgres
+   ```
+
+2. **Configure Environment Variables (`.env`)**:
+   Instead of modifying `config.py` directly (which can lead to connection errors or credential leaks), create a new file named `.env` in the `backend/` directory with the following contents:
+   ```env
+   # Make sure this matches the docker container credentials created above!
+   DATABASE_URL="postgresql+asyncpg://postgres:password@localhost:5432/amivre"
+   GEMINI_API_KEY="your_actual_gemini_api_key"
+   # Generate a key simply by running: python -c "import secrets; print(secrets.token_urlsafe(32))"
+   SECRET_KEY="your_generated_secret_key"
+   ```
+
+3. **Install Dependencies**:
+   Ensure you have your virtual environment activated, then install dependencies. We've included `psycopg2-binary` to support sync/migration fallbacks securely:
+   ```bash
+   pip install -r requirements.txt
+   pip install psycopg2-binary
+   ```
+
+4. **Fire up the backend ecosystem:**
    Open two terminal windows.
    - Terminal 1 (Run Celery Worker): `celery -A app.worker.celery_app worker --loglevel=info -P gevent` (Windows requires gevent or threads config).
    - Terminal 2 (Run FastAPI): `uvicorn app.main:app --reload`
-   Make sure Redis, PostgreSQL, and Qdrant containers are running via Docker.
+   *(Note: The terminal error you encountered earlier containing `asyncpg\connection.py:2443` was simply a `ConnectionRefused` because FastAPI was launched before the Postgres Docker container was successfully running at port 5432!)*
 
 2. **Trigger the Analysis Job (via API or Swagger UI)**:
    Navigate your browser to `http://127.0.0.1:8000/docs`. Under the Auth section, register or login a user to get your Bearer Token, and then Authorize the Swagger UI.
@@ -47,14 +71,7 @@ To test the entire flow end-to-end exactly as a user would, follow these steps l
    ```
    *You will receive a `job_id` back.*
 
-> 1. Go to backend\app\config.py and fill 
-DATABASE_URL: str = ""
-GEMINI_API_KEY: str = ""
-SECRET_KEY: str = "" (Run to get key -  python -c "import secrets; print(secrets.token_urlsafe(32))")
-> 2. resolve dependencies - pip install psycopg2
-pip install psycopg2
-> 3. Get redis image - docker run -d -p 6379:6379 --name redis redis
-> 4. Get postgress image - docker run -d -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=password -e POSTGRES_DB=amivre --name postgres postgres
+
 
 
 3. **Check Celery Output**:
