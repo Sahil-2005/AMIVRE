@@ -82,6 +82,7 @@ async def test_login_invalid_credentials():
 
     assert res.status_code == status.HTTP_401_UNAUTHORIZED
 
+
 @pytest.mark.asyncio
 async def test_get_me_success():
     from app.dependencies import get_current_user
@@ -96,12 +97,14 @@ async def test_get_me_success():
         user.is_active = True
         user.created_at = datetime.utcnow()
         return user
-        
+
     app.dependency_overrides[get_current_user] = override_get_current_user
-    
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as ac:
         res = await ac.get("/api/v1/auth/me")
-    
+
     assert res.status_code == status.HTTP_200_OK
     assert res.json()["email"] == "test@example.com"
     app.dependency_overrides.pop(get_current_user, None)
