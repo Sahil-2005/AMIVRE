@@ -75,3 +75,74 @@ async def test_submit_analysis_success(mock_pipeline):
     assert res.status_code == 202
     assert "job_id" in res.json()
     assert res.json()["status"] == JobStatus.PENDING.value
+
+@pytest.mark.asyncio
+async def test_get_analysis():
+    db_session = MagicMock()
+    mock_result = MagicMock()
+    mock_job = MagicMock()
+    test_id = "123e4567-e89b-12d3-a456-426614174000"
+    mock_job.id = uuid.UUID(test_id)
+    
+    test_user_id = uuid.uuid4()
+    
+    async def get_test_user():
+        user = User()
+        user.id = test_user_id
+        user.email = "test@example.com"
+        return user
+        
+    app.dependency_overrides[get_current_user] = get_test_user
+    mock_job.user_id = test_user_id
+    mock_job.status = JobStatus.PENDING
+    mock_job.depth = JobDepth.STANDARD
+    mock_job.business_idea = "word " * 60
+    mock_job.target_market = "Tech"
+    mock_job.geography = "Global"
+    
+    from datetime import datetime
+    mock_job.created_at = datetime.utcnow()
+    mock_job.completed_at = None
+    mock_job.error_message = None
+    mock_job.result_json = None
+    
+    mock_result.scalar_one_or_none.return_value = mock_job
+    db_session.execute = AsyncMock(return_value=mock_result)
+    
+    app.dependency_overrides[get_db] = lambda: db_session
+    
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        res = await ac.get(f"/api/v1/analysis/{test_id}")
+        
+    assert res.status_code == 200
+    assert res.json()["status"] == "PENDING"
+    
+@pytest.mark.asyncio
+async def test_delete_analysis():
+    db_session = MagicMock()
+    mock_result = MagicMock()
+    mock_job = MagicMock()
+    test_id = "123e4567-e89b-12d3-a456-426614174000"
+    
+    test_user_id = uuid.uuid4()
+    
+    async def get_test_user():
+        user = User()
+        user.id = test_user_id
+        return user
+        
+    app.dependency_overrides[get_current_user] = get_test_user
+    mock_job.user_id = test_user_id
+    mock_job.status = JobStatus.PENDING  # Can be deleted
+    
+    mock_result.scalar_one_or_none.return_value = mock_job
+    db_session.execute = AsyncMock(return_value=mock_result)
+    db_session.delete = AsyncMock()
+    db_session.commit = AsyncMock()
+    
+    app.dependency_overrides[get_db] = lambda: db_session
+    
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        res = await ac.delete(f"/api/v1/analysis/{test_id}")
+        
+    assert res.status_code == 204
