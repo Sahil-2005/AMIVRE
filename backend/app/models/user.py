@@ -1,10 +1,12 @@
 """
 Module: user.py
 """
+
 import uuid
 from sqlalchemy import Column, String, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 from app.db.base import Base
+
 
 class User(Base):
     __tablename__ = "users"
