@@ -32,11 +32,41 @@ async def _run_analysis_pipeline_stub(job_id: str) -> dict:
             job.status = JobStatus.RUNNING
             await session.commit()
 
-            await asyncio.sleep(5)  # Simulate work
+            try:
+                from app.orchestrator.graph import graph
 
-            job.status = JobStatus.COMPLETED
-            job.result_json = {"message": "Placeholder result"}
-            await session.commit()
+                initial_state = {
+                    "business_idea": job.business_idea,
+                    "target_market": job.target_market,
+                    "geography": job.geography,
+                    "depth": (
+                        job.depth.value
+                        if hasattr(job.depth, "value")
+                        else str(job.depth)
+                    ),
+                }
+
+                final_state = await asyncio.to_thread(graph.invoke, initial_state)
+
+                # Convert the final_state dictionary holding Pydantic objects to JSON serializable structures
+                def serialize_pydantic(obj):
+                    if hasattr(obj, "model_dump"):
+                        return obj.model_dump()
+                    if isinstance(obj, dict):
+                        return {k: serialize_pydantic(v) for k, v in obj.items()}
+                    return obj
+
+                job.result_json = serialize_pydantic(final_state)
+                job.status = JobStatus.COMPLETED
+
+            except Exception as e:
+                import logging
+
+                logging.error(f"Job {job_id} failed: {e}")
+                job.status = JobStatus.FAILED
+                job.error_message = str(e)
+            finally:
+                await session.commit()
     return {"status": "success", "job_id": job_id}
 
 

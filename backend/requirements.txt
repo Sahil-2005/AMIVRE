@@ -2,6 +2,7 @@ fastapi[all]>=0.109.2
 uvicorn>=0.27.0
 sqlalchemy[asyncio]>=2.0.25
 asyncpg>=0.29.0
+psycopg2-binary>=2.9.9
 alembic>=1.13.1
 pydantic>=2.6.0
 pydantic-settings>=2.1.0
@@ -15,6 +16,7 @@ bcrypt==3.2.2
 pre-commit
 langgraph
 langchain
+langchain-google-genai
 pytest
 pytest-asyncio
 httpx
