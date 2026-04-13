@@ -56,7 +56,7 @@ To test the entire flow end-to-end exactly as a user would, follow these steps l
    Open two terminal windows.
    - Terminal 1 (Run Celery Worker): `celery -A app.worker.celery_app worker --loglevel=info -P gevent` (Windows requires gevent or threads config).
    - Terminal 2 (Run FastAPI): `uvicorn app.main:app --reload`
-   *(Note: The terminal error you encountered earlier containing `asyncpg\connection.py:2443` was simply a `ConnectionRefused` because FastAPI was launched before the Postgres Docker container was successfully running at port 5432!)*
+   
 
 2. **Trigger the Analysis Job (via API or Swagger UI)**:
    Navigate your browser to `http://127.0.0.1:8000/docs`. Under the Auth section, register or login a user to get your Bearer Token, and then Authorize the Swagger UI.
