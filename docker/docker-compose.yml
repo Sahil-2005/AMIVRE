@@ -29,8 +29,8 @@ services:
 
   backend:
     build:
-      context: ./
-      dockerfile: Dockerfile.backend
+      context: ../
+      dockerfile: docker/Dockerfile.backend
     ports:
       - "8000:8000"
     volumes:
@@ -50,8 +50,8 @@ services:
 
   worker:
     build:
-      context: ./
-      dockerfile: Dockerfile.celery
+      context: ../
+      dockerfile: docker/Dockerfile.celery
     volumes:
       - ../backend:/app
     environment:
