@@ -14,7 +14,7 @@ class BaseAgent:
     Provides standard LLM initialization and structured output execution.
     """
 
-    def __init__(self, model_name: str = "gemini-1.5-flash"):
+    def __init__(self, model_name: str = "gemini-3.5-flash"):
         self.model_name = model_name
         # Instantiate LLM per worker safely using the settings API key
         self.llm = ChatGoogleGenerativeAI(
@@ -44,7 +44,7 @@ class BaseAgent:
                     "system",
                     "You are an expert AI business analyst for AMIVRE, an autonomous market intelligence engine. Your task is to output highly accurate, data-driven analysis in strictly valid JSON matching the requested schema. If exact data is missing, provide a grounded, highly realistic estimate based on the provided context.",
                 ),
-                ("human", prompt_template),
+                ("human", "{human_prompt}"),
             ]
         )
 
@@ -53,11 +53,14 @@ class BaseAgent:
 
         chain = prompt | structured_llm
 
+        # Safely pass the prompt_template as a variable so brackets aren't evaluated
+        safe_input_vars = {**input_vars, "human_prompt": prompt_template}
+
         try:
             logger.info(
                 f"Executing {self.__class__.__name__} with model {self.model_name}"
             )
-            result = chain.invoke(input_vars)
+            result = chain.invoke(safe_input_vars)
             return result
         except Exception as e:
             logger.error(f"Error executing agent {self.__class__.__name__}: {str(e)}")

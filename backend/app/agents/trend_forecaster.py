@@ -4,7 +4,7 @@ from app.orchestrator.state import TrendOutput
 
 class TrendForecasterAgent(BaseAgent):
     def __init__(self):
-        super().__init__(model_name="gemini-1.5-flash")
+        super().__init__(model_name="gemini-3.5-flash")
 
     def run(self, state: dict) -> dict:
         business_idea = state.get("business_idea", "")

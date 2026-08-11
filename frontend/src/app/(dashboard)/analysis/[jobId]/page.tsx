@@ -85,31 +85,49 @@ export default function AnalysisPage() {
   if (!result) return <div>No result data available.</div>;
 
   return (
-    <div className="mx-auto max-w-6xl flex flex-col gap-8 pb-10">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <Button variant="ghost" className="mb-2 -ml-4" onClick={() => router.push('/')}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Dashboard
-          </Button>
-          <h1 className="text-3xl font-bold tracking-tight">Intelligence Report</h1>
-          <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
-            <span className="truncate max-w-md">"{job.business_idea}"</span>
-            <span>•</span>
-            <Badge variant="secondary">{job.target_market}</Badge>
-            <Badge variant="outline">{job.geography}</Badge>
+    <div className="mx-auto max-w-6xl flex flex-col gap-6 pb-10">
+      {/* Header */}
+      <div className="relative rounded-2xl border border-white/5 bg-card overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent pointer-events-none" />
+        <div className="relative p-6 md:p-8">
+          <button
+            onClick={() => router.push('/')}
+            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-5 group"
+          >
+            <ArrowLeft className="h-4 w-4 group-hover:-translate-x-0.5 transition-transform" />
+            Dashboard
+          </button>
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xs font-semibold uppercase tracking-widest text-primary">Intelligence Report</span>
+              </div>
+              <h1 className="text-2xl md:text-3xl font-black tracking-tight leading-tight mb-3 max-w-3xl">
+                "{job.business_idea.slice(0, 80)}{job.business_idea.length > 80 ? '…' : ''}"
+              </h1>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 text-primary px-3 py-1 text-xs font-semibold">
+                  {job.target_market}
+                </span>
+                <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 text-muted-foreground px-3 py-1 text-xs font-semibold">
+                  {job.geography}
+                </span>
+                <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 text-muted-foreground px-3 py-1 text-xs font-semibold">
+                  {job.depth} Depth
+                </span>
+              </div>
+            </div>
+            <Button onClick={() => window.print()} variant="outline" className="shrink-0 gap-2 rounded-xl border-white/10 hover:border-white/20 bg-white/5">
+              <Download className="h-4 w-4" />
+              Export PDF
+            </Button>
           </div>
         </div>
-        
-        <Button onClick={() => window.print()} className="shrink-0 gap-2">
-          <Download className="h-4 w-4" />
-          Export PDF
-        </Button>
       </div>
 
-      <ExecutiveSummary 
-        risk={result.risk_assessment} 
-        marketPhase={result.trend_data.market_phase} 
+      <ExecutiveSummary
+        risk={result.risk_assessment}
+        marketPhase={result.trend_data.market_phase}
       />
 
       <ReportTabs data={result} />

@@ -42,7 +42,7 @@ services:
       - CELERY_RESULT_BACKEND=redis://redis:6379/2
       - QDRANT_URL=http://qdrant:6333
     env_file:
-      - ../backend/.env.example
+      - ../backend/.env
     depends_on:
       - postgres
       - redis
@@ -61,7 +61,7 @@ services:
       - CELERY_RESULT_BACKEND=redis://redis:6379/2
       - QDRANT_URL=http://qdrant:6333
     env_file:
-      - ../backend/.env.example
+      - ../backend/.env
     depends_on:
       - backend
       - redis

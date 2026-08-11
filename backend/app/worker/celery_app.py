@@ -6,7 +6,7 @@ import asyncio
 from celery import Celery
 from app.config import settings
 from app.db.session import AsyncSessionLocal
-from app.models.analysis_job import AnalysisJob, JobStatus
+from app.models import AnalysisJob, JobStatus
 from sqlalchemy import select
 
 celery_app = Celery(
@@ -69,7 +69,12 @@ async def _run_analysis_pipeline_stub(job_id: str) -> dict:
                 await session.commit()
     return {"status": "success", "job_id": job_id}
 
+try:
+    loop = asyncio.get_event_loop()
+except RuntimeError:
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
 
 @celery_app.task(name="app.worker.celery_app.run_analysis_pipeline")
 def run_analysis_pipeline(job_id: str):
-    return asyncio.run(_run_analysis_pipeline_stub(job_id))
+    return loop.run_until_complete(_run_analysis_pipeline_stub(job_id))
