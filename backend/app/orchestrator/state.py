@@ -73,6 +73,9 @@ class AgentState(TypedDict):
     geography: str
     depth: str
 
+    # Internal: passed by the Celery worker so agents can publish WebSocket events
+    _job_id: Optional[str]
+
     # Partial outputs natively merged (no reducer needed because nodes will output dictionaries with these keys)
     market_data: Optional[MarketScoutOutput]
     sentiment_data: Optional[SentimentOutput]

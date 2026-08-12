@@ -3,9 +3,9 @@ import { AlertTriangle, ShieldCheck, TrendingUp, Zap } from 'lucide-react';
 
 export function ExecutiveSummary({ risk, marketPhase }: { risk: RiskAssessment; marketPhase: string }) {
   const getScoreConfig = (score: number) => {
-    if (score < 40) return { color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', ring: 'from-emerald-500/30', label: 'Low Risk' };
-    if (score < 70) return { color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20', ring: 'from-amber-500/30', label: 'Medium Risk' };
-    return { color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/20', ring: 'from-red-500/30', label: 'High Risk' };
+    if (score < 40) return { color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', ring: 'from-emerald-500/30', label: 'Low Risk', labelBg: 'bg-emerald-500/20 text-emerald-400' };
+    if (score < 70) return { color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20', ring: 'from-amber-500/30', label: 'Medium Risk', labelBg: 'bg-amber-500/20 text-amber-400' };
+    return { color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/20', ring: 'from-red-500/30', label: 'High Risk', labelBg: 'bg-red-500/20 text-red-400' };
   };
 
   const getRecConfig = (rec: string) => {

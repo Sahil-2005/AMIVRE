@@ -1,0 +1,24 @@
+{
+    "hits": [
+        {
+            "created_at": "2024-01-15T12:00:00Z",
+            "title": "Ask HN: What AI code review tools are you using?",
+            "url": "",
+            "author": "dev123",
+            "points": 345,
+            "num_comments": 120,
+            "objectID": "384501",
+            "_tags": ["story", "ask_hn"]
+        },
+        {
+            "created_at": "2023-11-20T10:30:00Z",
+            "title": "Show HN: I built an AI that reviews PRs",
+            "url": "https://example.com/my-tool",
+            "author": "founder99",
+            "points": 210,
+            "num_comments": 85,
+            "objectID": "374592",
+            "_tags": ["story", "show_hn"]
+        }
+    ]
+}

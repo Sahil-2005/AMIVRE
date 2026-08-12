@@ -6,7 +6,10 @@ import { SentimentTab } from './sentiment-tab';
 import { CompetitorsTab } from './competitors-tab';
 import { TrendsTab } from './trends-tab';
 import { RiskTab } from './risk-tab';
-import { ShieldAlert, BarChart2, Swords, MessageCircle, TrendingUp } from 'lucide-react';
+import {
+  ShieldAlert, BarChart2, Swords, MessageCircle, TrendingUp,
+  Globe, MessageSquare, Star, Flame, LineChart, Database
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const TABS = [
@@ -17,11 +20,42 @@ const TABS = [
   { id: 'trends', label: 'Trends & Forecast', icon: TrendingUp },
 ];
 
+const DATA_SOURCES = [
+  { label: 'Wikipedia', icon: Globe, color: 'text-violet-400', bg: 'bg-violet-500/10 border-violet-500/20' },
+  { label: 'Reddit (Mock)', icon: MessageSquare, color: 'text-orange-400', bg: 'bg-orange-500/10 border-orange-500/20' },
+  { label: 'Google Play', icon: Star, color: 'text-sky-400', bg: 'bg-sky-500/10 border-sky-500/20' },
+  { label: 'Hacker News', icon: Flame, color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/20' },
+  { label: 'Google Trends', icon: LineChart, color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20' },
+];
+
 export function ReportTabs({ data }: { data: AnalysisResult }) {
   const [active, setActive] = useState('risk');
 
   return (
     <div className="flex flex-col gap-5">
+      {/* Live Data Provenance Strip */}
+      <div className="rounded-xl border border-white/5 bg-card/50 px-4 py-3 flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider shrink-0">
+          <Database className="h-3 w-3" />
+          Live Sources
+        </div>
+        <div className="w-px h-4 bg-white/10 shrink-0" />
+        <div className="flex items-center gap-2 flex-wrap">
+          {DATA_SOURCES.map(source => {
+            const Icon = source.icon;
+            return (
+              <span key={source.label} className={cn(
+                'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold',
+                source.bg, source.color
+              )}>
+                <Icon className="h-3 w-3" />
+                {source.label}
+              </span>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Premium Tab Bar */}
       <div className="relative rounded-2xl border border-white/5 bg-card p-1.5 flex gap-1 overflow-x-auto scrollbar-none">
         <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-primary/5 via-transparent to-transparent pointer-events-none" />

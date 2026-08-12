@@ -20,3 +20,10 @@ langchain-google-genai
 pytest
 pytest-asyncio
 httpx
+playwright
+beautifulsoup4
+lxml
+google-play-scraper
+pytrends
+praw
+googlesearch-python
