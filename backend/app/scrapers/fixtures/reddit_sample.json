@@ -1,0 +1,29 @@
+{
+    "kind": "Listing",
+    "data": {
+        "children": [
+            {
+                "kind": "t3",
+                "data": {
+                    "subreddit": "programming",
+                    "title": "Is AI code review actually worth it?",
+                    "selftext": "I've been using some AI code review tools for the past 3 months and here are my thoughts...",
+                    "score": 342,
+                    "permalink": "/r/programming/comments/12345/is_ai_code_review/",
+                    "subreddit_name_prefixed": "r/programming"
+                }
+            },
+            {
+                "kind": "t3",
+                "data": {
+                    "subreddit": "SaaS",
+                    "title": "We built an AI-powered code reviewer and got to $10k MRR",
+                    "selftext": "It was a wild ride building this. The hardest part was dealing with false positives...",
+                    "score": 156,
+                    "permalink": "/r/SaaS/comments/67890/we_built_an_ai_powered/",
+                    "subreddit_name_prefixed": "r/SaaS"
+                }
+            }
+        ]
+    }
+}
