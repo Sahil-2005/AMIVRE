@@ -15,7 +15,7 @@ class SentimentAnalystAgent(BaseAgent):
         self._publish_progress(job_id, "Sentiment_Analyst", "AGENT_RUNNING", "Loading Reddit community discussions...")
 
         from app.scrapers.scraper_runner import build_sentiment_context
-        context_string = asyncio.run(
+        context_string, raw_data = asyncio.run(
             build_sentiment_context(business_idea, target_market)
         )
 
@@ -29,6 +29,12 @@ class SentimentAnalystAgent(BaseAgent):
         1. Identify the top pain points users experience in this market right now. Be specific and use evidence from the data.
         2. Identify the top 5 desires or positive wishes users express heavily in the reviews.
         3. Calculate a sentiment score between -1.0 (extremely negative) to 1.0 (extremely positive) for each pain point cluster.
+        
+        STRICT CITATION RULES:
+        1. Look for lines starting with "Source URL:" in the provided context. These are the ONLY valid URLs.
+        2. For each review or post used, add an entry to the `sources` array with the exact `url` from the "Source URL:" line (or use the subreddit URL for reddit posts), the `title` of the review/post, and `platform` set to "Reddit" or "Google Play".
+        3. DO NOT invent, guess, or hallucinate any URLs. If no Source URL is available, leave the `sources` array empty.
+        4. Never use generic URLs like "https://reddit.com" or "https://play.google.com". Only use full, specific URLs from the context.
         """
 
         result = self.execute_with_structured_output(
@@ -40,4 +46,7 @@ class SentimentAnalystAgent(BaseAgent):
             agent_name="Sentiment_Analyst",
         )
 
-        return {"sentiment_data": result}
+        return {
+            "sentiment_data": result,
+            "scraped_data": {"sentiment_analyst": raw_data}
+        }

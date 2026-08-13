@@ -1,5 +1,6 @@
 import { SentimentData } from '@/types/api';
 import { MessageSquareWarning, Sparkles } from 'lucide-react';
+import { CitationSources } from '@/components/analysis/citation-sources';
 
 export function SentimentTab({ data }: { data: SentimentData }) {
   const sortedPainPoints = [...data.pain_points].sort((a, b) => b.sentiment_score - a.sentiment_score);
@@ -75,6 +76,8 @@ export function SentimentTab({ data }: { data: SentimentData }) {
           </div>
         </div>
       </div>
+
+      <CitationSources sources={data.sources} />
     </div>
   );
 }

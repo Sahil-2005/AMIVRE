@@ -1,5 +1,6 @@
 import { CompetitorData } from '@/types/api';
 import { Check, X, Sword, ArrowLeftRight, Crosshair } from 'lucide-react';
+import { CitationSources } from '@/components/analysis/citation-sources';
 
 export function CompetitorsTab({ data }: { data: CompetitorData }) {
   const allFeatures = Array.from(new Set(Object.values(data.feature_matrix).flat()));
@@ -108,6 +109,8 @@ export function CompetitorsTab({ data }: { data: CompetitorData }) {
           </div>
         </div>
       )}
+      
+      <CitationSources sources={data.sources} />
     </div>
   );
 }

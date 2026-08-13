@@ -17,7 +17,7 @@ class MarketScoutAgent(BaseAgent):
 
         # Run async scraper in a sync context
         from app.scrapers.scraper_runner import build_market_scout_context
-        context_string = asyncio.run(
+        context_string, raw_data = asyncio.run(
             build_market_scout_context(business_idea, target_market, geography)
         )
 
@@ -36,6 +36,12 @@ class MarketScoutAgent(BaseAgent):
         - The current market growth rate.
         - Regulatory considerations.
         - Whether the market is saturated and justify your answer.
+        
+        STRICT CITATION RULES:
+        1. Look for lines starting with "Source URL:" in the provided context. These are the ONLY valid URLs.
+        2. For each Wikipedia article used, add an entry to the `sources` array with the exact `url` from the "Source URL:" line, the `title` of the section, and `platform` set to "Wikipedia".
+        3. DO NOT invent, guess, or hallucinate any URLs. If no Source URL is available, leave the `sources` array empty.
+        4. Never use generic URLs like "https://wikipedia.org" or "https://play.google.com". Only use full, specific URLs from the context.
         """
 
         result = self.execute_with_structured_output(
@@ -47,4 +53,7 @@ class MarketScoutAgent(BaseAgent):
             agent_name="Market_Scout",
         )
 
-        return {"market_data": result}
+        return {
+            "market_data": result,
+            "scraped_data": {"market_scout": raw_data}
+        }

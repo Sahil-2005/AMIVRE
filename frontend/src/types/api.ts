@@ -15,6 +15,12 @@ export interface AnalysisSubmitRequest {
   depth: JobDepth
 }
 
+export interface SourceInfo {
+  title: string;
+  url: string;
+  platform: string;
+}
+
 export interface MarketData {
   total_addressable_market: string;
   serviceable_addressable_market: string;
@@ -24,11 +30,13 @@ export interface MarketData {
   regulatory_considerations: string[];
   is_saturated: boolean;
   saturation_justification: string;
+  sources: SourceInfo[];
 }
 
 export interface SentimentData {
   pain_points: Array<{ description: string; sentiment_score: number }>;
   top_desires: string[];
+  sources: SourceInfo[];
 }
 
 export interface CompetitorData {
@@ -36,12 +44,14 @@ export interface CompetitorData {
   indirect_competitors: Array<{ name: string; description: string }>;
   feature_matrix: Record<string, string[]>;
   competitor_weaknesses: Record<string, string>;
+  sources: SourceInfo[];
 }
 
 export interface TrendData {
   market_phase: string;
   sub_topics: string[];
   seasonal_patterns: string;
+  sources: SourceInfo[];
 }
 
 export interface RiskAssessment {
@@ -62,6 +72,7 @@ export interface AnalysisResult {
   competitor_data: CompetitorData
   trend_data: TrendData
   risk_assessment: RiskAssessment
+  scraped_data?: Record<string, any>
 }
 
 export interface AnalysisJobResponse {

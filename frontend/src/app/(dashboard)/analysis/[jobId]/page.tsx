@@ -8,6 +8,7 @@ import { AnalysisJobResponse } from '@/types/api';
 import { ProgressTracker } from '@/components/analysis/progress-tracker';
 import { ReportTabs } from '@/components/analysis/report-tabs';
 import { ExecutiveSummary } from '@/components/analysis/executive-summary';
+import { ScrapedDataDrawer } from '@/components/analysis/scraped-data-drawer';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Download } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -117,10 +118,13 @@ export default function AnalysisPage() {
                 </span>
               </div>
             </div>
-            <Button onClick={() => window.print()} variant="outline" className="shrink-0 gap-2 rounded-xl border-white/10 hover:border-white/20 bg-white/5">
-              <Download className="h-4 w-4" />
-              Export PDF
-            </Button>
+            <div className="flex items-center gap-2 shrink-0">
+              <ScrapedDataDrawer scrapedData={result.scraped_data} />
+              <Button onClick={() => window.print()} variant="outline" className="gap-2 rounded-xl border-white/10 hover:border-white/20 bg-white/5">
+                <Download className="h-4 w-4" />
+                Export PDF
+              </Button>
+            </div>
           </div>
         </div>
       </div>

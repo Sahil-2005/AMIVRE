@@ -3,6 +3,7 @@ import { MarketData } from '@/types/api';
 import { Badge } from '@/components/ui/badge';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { TrendingUp, Target, Scale, AlertCircle } from 'lucide-react';
+import { CitationSources } from '@/components/analysis/citation-sources';
 
 const COLORS = ['#6366f1', '#8b5cf6', '#a78bfa'];
 
@@ -141,6 +142,8 @@ export function MarketTab({ data }: { data: MarketData }) {
           </div>
         </div>
       </div>
+
+      <CitationSources sources={data.sources} />
     </div>
   );
 }

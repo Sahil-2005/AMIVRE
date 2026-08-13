@@ -4,7 +4,6 @@ from pathlib import Path
 from datetime import datetime
 from bs4 import BeautifulSoup
 from google_play_scraper import reviews as gp_reviews
-from app_store_scraper import AppStore
 from playwright.async_api import async_playwright
 
 
@@ -106,18 +105,7 @@ async def _scrape_play_store(app_id: str, count: int = 100) -> list[dict]:
         return []
 
 
-async def _scrape_app_store(app_name: str, app_id: int, count: int = 100) -> list[dict]:
-    """
-    Fetch reviews from Apple App Store.
-    app_name: short name for URL slug, e.g. "github"
-    app_id:   numeric App Store ID, e.g. 1477376905
-    """
-    try:
-        scraper = await asyncio.to_thread(AppStore, country="us", app_name=app_name, app_id=app_id)
-        await asyncio.to_thread(scraper.review, how_many=count)
-        return parse_app_store_reviews(scraper.reviews)
-    except Exception:
-        return []
+
 
 
 async def _scrape_trustpilot(domain: str) -> list[dict]:
@@ -174,9 +162,6 @@ async def scrape_reviews(
 
         if play_store_ids and comp in play_store_ids:
             tasks.append(_scrape_play_store(play_store_ids[comp]))
-
-        if app_store_ids and comp in app_store_ids:
-            tasks.append(_scrape_app_store(comp.lower(), app_store_ids[comp]))
 
     if not tasks:
         return []

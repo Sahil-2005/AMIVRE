@@ -15,7 +15,7 @@ class CompetitorTrackerAgent(BaseAgent):
         self._publish_progress(job_id, "Competitor_Tracker", "AGENT_RUNNING", "Mapping competitor landscape via Wikipedia...")
 
         from app.scrapers.scraper_runner import build_competitor_context
-        context_string = asyncio.run(
+        context_string, raw_data = asyncio.run(
             build_competitor_context(business_idea, target_market)
         )
 
@@ -30,6 +30,12 @@ class CompetitorTrackerAgent(BaseAgent):
         1. Identify 5 direct competitors and 3 indirect competitors. Provide their name and a brief description.
         2. Create a feature matrix across these competitors by mapping top 5-7 key features to the competitors that have them.
         3. Identify the primary weakness of each competitor, backed by the review data where possible.
+        
+        STRICT CITATION RULES:
+        1. Look for lines starting with "Source URL:" in the provided context. These are the ONLY valid URLs.
+        2. For each source used, add an entry to the `sources` array with the exact `url` from the "Source URL:" line, the `title`, and `platform` set to "Wikipedia" or "Google Play".
+        3. DO NOT invent, guess, or hallucinate any URLs. If no Source URL is available, leave the `sources` array empty.
+        4. Never use generic URLs like "https://wikipedia.org" or "https://play.google.com". Only use full, specific URLs from the context.
         """
 
         result = self.execute_with_structured_output(
@@ -41,4 +47,7 @@ class CompetitorTrackerAgent(BaseAgent):
             agent_name="Competitor_Tracker",
         )
 
-        return {"competitor_data": result}
+        return {
+            "competitor_data": result,
+            "scraped_data": {"competitor_tracker": raw_data}
+        }

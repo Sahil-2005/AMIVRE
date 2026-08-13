@@ -64,6 +64,7 @@ async def _run_analysis_pipeline_stub(job_id: str) -> dict:
                     ),
                     # Pass job_id so agents can publish their own AGENT_RUNNING events
                     "_job_id": str(job_id),
+                    "scraped_data": {},
                 }
 
                 final_state = await asyncio.to_thread(graph.invoke, initial_state)
