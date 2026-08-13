@@ -79,21 +79,19 @@ cp backend/.env.example backend/.env
 ```
 *Make sure to add your `GEMINI_API_KEY` to the `backend/.env` file.*
 
-### 2. Run with Docker (Recommended)
-AMIVRE is fully dockerized for instant deployment.
+### 2. Run the Entire Stack (Docker)
+AMIVRE is fully dockerized for instant deployment. You do not need to install Node.js or Python locally.
 
 ```bash
-docker compose -f docker/docker-compose.yml --profile default up -d --build
+docker compose -f docker/docker-compose.yml up -d --build
 ```
-This single command spins up the FastAPI Backend, Celery Worker, Redis, PostgreSQL, and Qdrant.
-
-### 3. Run the Frontend
-```bash
-cd frontend
-npm install
-npm run dev
-```
-The application will be available at `http://localhost:3000`.
+This single command spins up the entire enterprise stack:
+- Next.js Frontend (Available at `http://localhost:3000`)
+- FastAPI Backend (Available at `http://localhost:8000`)
+- Celery Worker (Async Task Engine)
+- Redis (Message Broker)
+- PostgreSQL (Database)
+- Qdrant (Vector DB)
 
 ---
 

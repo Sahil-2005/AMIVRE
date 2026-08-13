@@ -11,13 +11,11 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-    profiles: ["default", "production"]
 
   redis:
     image: redis:7-alpine
     ports:
       - "6379:6379"
-    profiles: ["default", "production"]
 
   qdrant:
     image: qdrant/qdrant:latest
@@ -25,7 +23,6 @@ services:
       - "6333:6333"
     volumes:
       - qdrantdata:/qdrant/storage
-    profiles: ["default", "production"]
 
   backend:
     build:
@@ -46,7 +43,6 @@ services:
     depends_on:
       - postgres
       - redis
-    profiles: ["default", "production"]
 
   worker:
     build:
@@ -65,7 +61,21 @@ services:
     depends_on:
       - backend
       - redis
-    profiles: ["default", "production"]
+
+  webui:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile.frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../frontend:/app
+      - /app/node_modules
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+      - NEXT_PUBLIC_WS_URL=ws://localhost:8000/api/v1/ws
+    depends_on:
+      - backend
 
 volumes:
   pgdata:
