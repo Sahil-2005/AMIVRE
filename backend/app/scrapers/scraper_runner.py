@@ -42,35 +42,63 @@ class SearchQueries(BaseModel):
     hn_query: str = Field(description="A 2-3 word query to search Hacker News for developer discussions about this market")
     trend_keywords: list[str] = Field(description="List of exactly 3 short keywords for Google Trends")
 
-def _generate_search_queries(business_idea: str, target_market: str) -> SearchQueries:
+# Global cache to prevent redundant LLM calls
+_query_cache = {}
+_query_in_progress = set()
+
+async def _generate_search_queries(business_idea: str, target_market: str) -> SearchQueries:
     """Uses Gemini to generate highly targeted search queries for the scrapers."""
-    llm = ChatGoogleGenerativeAI(
-        model="gemini-3.5-flash",
-        google_api_key=settings.GEMINI_API_KEY,
-        temperature=0.0
-    )
-    structured_llm = llm.with_structured_output(SearchQueries)
-    prompt = f"""
-    We need to search various platforms for market research on the following startup:
-    Idea: {business_idea}
-    Target Market: {target_market}
+    cache_key = f"{business_idea}:{target_market}"
     
-    Generate the most relevant, broad industry search queries. Do NOT just copy the input text.
-    Extract the core industry or product category.
-    For example, if the idea is a 3D-knitted biodegradable apparel brand, the Wikipedia market query should be 'Sustainable fashion' or 'Textile recycling', NOT 'Minimalist fashion enthusiasts'.
-    """
-    try:
+    if cache_key in _query_cache:
+        return _query_cache[cache_key]
+        
+    if cache_key in _query_in_progress:
+        # Wait for the other concurrent agent to finish generating the queries
+        while cache_key not in _query_cache:
+            await asyncio.sleep(0.5)
+        return _query_cache[cache_key]
+        
+    _query_in_progress.add(cache_key)
+
+    # Use to_thread since ChatGoogleGenerativeAI is synchronous
+    def _invoke_llm():
+        llm = ChatGoogleGenerativeAI(
+            model="gemini-3.5-flash",
+            google_api_key=settings.GEMINI_API_KEY,
+            temperature=0.0
+        )
+        structured_llm = llm.with_structured_output(SearchQueries)
+        prompt = f"""
+        We need to search various platforms for market research on the following startup:
+        Idea: {business_idea}
+        Target Market: {target_market}
+        
+        Generate the most relevant, broad industry search queries. Do NOT just copy the input text.
+        Extract the core industry or product category.
+        For example, if the idea is a 3D-knitted biodegradable apparel brand, the Wikipedia market query should be 'Sustainable fashion' or 'Textile recycling', NOT 'Minimalist fashion enthusiasts'.
+        """
         return structured_llm.invoke(prompt)
+
+    try:
+        logger.info("Generating search queries via LLM...")
+        result = await asyncio.to_thread(_invoke_llm)
+        _query_cache[cache_key] = result
+        return result
     except Exception as e:
         logger.error(f"Failed to generate search queries: {e}")
         # Fallback to safe defaults if LLM fails
-        return SearchQueries(
+        fallback = SearchQueries(
             wikipedia_market_query="Software industry",
             wikipedia_competitor_query="Software companies",
             app_store_query="productivity",
             hn_query="software",
             trend_keywords=["software", "SaaS", "tech"]
         )
+        _query_cache[cache_key] = fallback
+        return fallback
+    finally:
+        _query_in_progress.discard(cache_key)
 
 
 # ─── Individual scraper wrappers ──────────────────────────────────────────────
@@ -131,7 +159,7 @@ async def _get_review_context(app_store_query: str) -> tuple[str, list]:
         )
         
         if not search_results:
-            logger.warning(f"No Google Play apps found for: {search_terms}")
+            logger.warning(f"No Google Play apps found for: {app_store_query}")
             return "", []
         
         # Build play_store_ids from search results
@@ -203,7 +231,7 @@ async def _get_trend_context(hn_query: str, trend_keywords: list[str]) -> tuple[
 
 async def build_market_scout_context(business_idea: str, target_market: str, geography: str) -> tuple[str, list]:
     """Wikipedia web context for market sizing."""
-    queries = _generate_search_queries(business_idea, target_market)
+    queries = await _generate_search_queries(business_idea, target_market)
     logger.info(f"Market Scout Wikipedia query: {queries.wikipedia_market_query}")
     raw_str, raw_data = await _get_web_context(queries.wikipedia_market_query, num_results=4)
     header = "=== LIVE WEB INTELLIGENCE (Wikipedia) ===\n"
@@ -212,7 +240,7 @@ async def build_market_scout_context(business_idea: str, target_market: str, geo
 
 async def build_sentiment_context(business_idea: str, target_market: str) -> tuple[str, dict]:
     """Reddit mock + live app store reviews for sentiment."""
-    queries = _generate_search_queries(business_idea, target_market)
+    queries = await _generate_search_queries(business_idea, target_market)
     (reddit_ctx, reddit_raw), (review_ctx, review_raw) = await asyncio.gather(
         asyncio.to_thread(_get_reddit_mock_context),
         _get_review_context(queries.app_store_query),
@@ -229,7 +257,7 @@ async def build_sentiment_context(business_idea: str, target_market: str) -> tup
 
 async def build_competitor_context(business_idea: str, target_market: str) -> tuple[str, dict]:
     """Wikipedia competitor landscape + live reviews."""
-    queries = _generate_search_queries(business_idea, target_market)
+    queries = await _generate_search_queries(business_idea, target_market)
     logger.info(f"Competitor Tracker Wikipedia query: {queries.wikipedia_competitor_query}")
     (web_ctx, web_raw), (review_ctx, review_raw) = await asyncio.gather(
         _get_web_context(queries.wikipedia_competitor_query, num_results=3),
@@ -247,6 +275,6 @@ async def build_competitor_context(business_idea: str, target_market: str) -> tu
 
 async def build_trend_context(business_idea: str, target_market: str) -> tuple[str, dict]:
     """HN chatter + Google Trends for trend forecasting."""
-    queries = _generate_search_queries(business_idea, target_market)
+    queries = await _generate_search_queries(business_idea, target_market)
     logger.info(f"Trend Forecaster HN query: {queries.hn_query}, Trend keywords: {queries.trend_keywords}")
     return await _get_trend_context(queries.hn_query, queries.trend_keywords)
