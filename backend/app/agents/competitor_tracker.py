@@ -10,32 +10,34 @@ class CompetitorTrackerAgent(BaseAgent):
     def run(self, state: dict) -> dict:
         business_idea = state.get("business_idea", "")
         target_market = state.get("target_market", "")
+        queries = state.get("competitor_queries", [])
         job_id = state.get("_job_id")
 
-        self._publish_progress(job_id, "Competitor_Tracker", "AGENT_RUNNING", "Mapping competitor landscape via Wikipedia...")
+        self._publish_progress(job_id, "Competitor_Tracker", "AGENT_RUNNING", "Mapping competitor landscape via Tavily and Crawl4AI...")
 
         from app.scrapers.scraper_runner import build_competitor_context
         context_string, raw_data = asyncio.run(
-            build_competitor_context(business_idea, target_market)
+            build_competitor_context(queries)
         )
 
-        self._publish_progress(job_id, "Competitor_Tracker", "AGENT_RUNNING", "Cross-referencing user reviews for competitor weaknesses...")
+        self._publish_progress(job_id, "Competitor_Tracker", "AGENT_RUNNING", "Analyzing competitor features and weaknesses...")
 
         prompt = f"""
-        Act as a competitive intelligence tracker.
-        We are building a product in the '{target_market}' market.
-        Idea: {business_idea}
+        Analyze the competitive landscape for this business idea.
         
-        Using the provided live web research and user reviews as your primary evidence:
-        1. Identify 5 direct competitors and 3 indirect competitors. Provide their name and a brief description.
-        2. Create a feature matrix across these competitors by mapping top 5-7 key features to the competitors that have them.
-        3. Identify the primary weakness of each competitor, backed by the review data where possible.
+        Business Idea: {business_idea}
+        Target Market: {target_market}
+        
+        Use the provided web research AND your knowledge base to extract:
+        - 5 direct competitors and 3 indirect competitors.
+        - A feature matrix mapping core features to competitors.
+        - The primary weakness of each identified competitor.
         
         STRICT CITATION RULES:
-        1. Look for lines starting with "Source URL:" in the provided context. These are the ONLY valid URLs.
-        2. For each source used, add an entry to the `sources` array with the exact `url` from the "Source URL:" line, the `title`, and `platform` set to "Wikipedia" or "Google Play".
+        1. Look for lines starting with "### Source URL:" in the provided context. These are the ONLY valid URLs.
+        2. For each source used, add an entry to the `sources` array with the exact `url` from the "### Source URL:" line, the `title` of the section, and `platform` set to "Web Research".
         3. DO NOT invent, guess, or hallucinate any URLs. If no Source URL is available, leave the `sources` array empty.
-        4. Never use generic URLs like "https://wikipedia.org" or "https://play.google.com". Only use full, specific URLs from the context.
+        4. Never use generic URLs. Only use full, specific URLs from the context.
         """
 
         result = self.execute_with_structured_output(

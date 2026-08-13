@@ -38,6 +38,8 @@ def _make_node(agent, result_key: str):
     return node
 
 
+from app.agents.master_query_node import master_query_node
+
 def build_graph():
     workflow = StateGraph(AgentState)
 
@@ -47,16 +49,18 @@ def build_graph():
     trend_forecaster = TrendForecasterAgent()
     risk_modeller = RiskModellerAgent()
 
+    workflow.add_node("Master_Query_Node", master_query_node)
     workflow.add_node("Market_Scout",      _make_node(market_scout,      "Market_Scout"))
     workflow.add_node("Sentiment_Analyst", _make_node(sentiment_analyst, "Sentiment_Analyst"))
     workflow.add_node("Competitor_Tracker",_make_node(competitor_tracker,"Competitor_Tracker"))
     workflow.add_node("Trend_Forecaster",  _make_node(trend_forecaster,  "Trend_Forecaster"))
     workflow.add_node("Risk_Modeller",     _make_node(risk_modeller,     "Risk_Modeller"))
 
-    workflow.add_edge(START, "Market_Scout")
-    workflow.add_edge(START, "Sentiment_Analyst")
-    workflow.add_edge(START, "Competitor_Tracker")
-    workflow.add_edge(START, "Trend_Forecaster")
+    workflow.add_edge(START, "Master_Query_Node")
+    workflow.add_edge("Master_Query_Node", "Market_Scout")
+    workflow.add_edge("Master_Query_Node", "Sentiment_Analyst")
+    workflow.add_edge("Master_Query_Node", "Competitor_Tracker")
+    workflow.add_edge("Master_Query_Node", "Trend_Forecaster")
 
     workflow.add_edge("Market_Scout",      "Risk_Modeller")
     workflow.add_edge("Sentiment_Analyst", "Risk_Modeller")

@@ -11,14 +11,15 @@ class MarketScoutAgent(BaseAgent):
         business_idea = state.get("business_idea", "")
         target_market = state.get("target_market", "")
         geography = state.get("geography", "")
+        queries = state.get("market_queries", [])
         job_id = state.get("_job_id")
 
-        self._publish_progress(job_id, "Market_Scout", "AGENT_RUNNING", "Scraping Wikipedia for market intelligence...")
+        self._publish_progress(job_id, "Market_Scout", "AGENT_RUNNING", "Running autonomous market research via Tavily and Crawl4AI...")
 
         # Run async scraper in a sync context
         from app.scrapers.scraper_runner import build_market_scout_context
         context_string, raw_data = asyncio.run(
-            build_market_scout_context(business_idea, target_market, geography)
+            build_market_scout_context(queries)
         )
 
         self._publish_progress(job_id, "Market_Scout", "AGENT_RUNNING", "Analyzing market sizing and saturation...")
@@ -38,10 +39,10 @@ class MarketScoutAgent(BaseAgent):
         - Whether the market is saturated and justify your answer.
         
         STRICT CITATION RULES:
-        1. Look for lines starting with "Source URL:" in the provided context. These are the ONLY valid URLs.
-        2. For each Wikipedia article used, add an entry to the `sources` array with the exact `url` from the "Source URL:" line, the `title` of the section, and `platform` set to "Wikipedia".
+        1. Look for lines starting with "### Source URL:" in the provided context. These are the ONLY valid URLs.
+        2. For each source used, add an entry to the `sources` array with the exact `url` from the "### Source URL:" line, the `title` of the section, and `platform` set to "Web Research".
         3. DO NOT invent, guess, or hallucinate any URLs. If no Source URL is available, leave the `sources` array empty.
-        4. Never use generic URLs like "https://wikipedia.org" or "https://play.google.com". Only use full, specific URLs from the context.
+        4. Never use generic URLs. Only use full, specific URLs from the context.
         """
 
         result = self.execute_with_structured_output(

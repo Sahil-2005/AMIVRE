@@ -35,12 +35,13 @@
 
 ## 🧠 The Agent Swarm
 
-The LangGraph orchestration pipeline coordinates five distinct AI agents:
+The LangGraph orchestration pipeline coordinates a Master Query Node and five distinct AI agents:
 
-1. 🌐 **Market Scout**: Scrapes Wikipedia and financial domains to calculate TAM/SAM/SOM and market saturation.
-2. 💬 **Sentiment Analyst**: Pulls live Reddit discussions and Google Play/App Store reviews to gauge raw user pain points and desires.
+0. 🧠 **Master Query Node**: Pre-generates highly targeted Google Search queries for all downstream agents in a single, efficient LLM call.
+1. 🌐 **Market Scout**: Executes autonomous web research to calculate TAM/SAM/SOM and market saturation.
+2. 💬 **Sentiment Analyst**: Pulls live user discussions and reviews across the web to gauge raw user pain points and desires.
 3. ⚔️ **Competitor Tracker**: Maps the direct/indirect competitive battlefield and builds a feature matrix using real-world public data.
-4. 📈 **Trend Forecaster**: Queries Hacker News chatter and Google Trends to detect rising sub-topics and seasonal demand fluctuations.
+4. 📈 **Trend Forecaster**: Queries the web for market momentum, developer chatter, and seasonal demand fluctuations.
 5. 🛡️ **Risk Modeller**: Synthesizes the outputs of all other agents into a final Venture Risk Score (0-100) and produces actionable mitigation strategies.
 
 ---
@@ -54,8 +55,8 @@ The LangGraph orchestration pipeline coordinates five distinct AI agents:
 
 ### Backend (Intelligence Engine)
 - **API**: FastAPI (Python 3.11+)
-- **AI/Orchestration**: LangChain, LangGraph, Google Gemini Pro 1.5
-- **Scraping**: Playwright, BeautifulSoup, Pytrends, Google Play Scraper
+- **AI/Orchestration**: LangChain, LangGraph, Google Gemini Pro 1.5 Flash
+- **Agentic Pipeline**: Tavily Search API, Crawl4AI (Async JS-rendering)
 - **Task Queue**: Celery with Redis broker (Async task processing)
 - **Database**: PostgreSQL (SQLAlchemy + Alembic async drivers)
 - **Vector DB**: Qdrant (Ready for future RAG expansions)
@@ -68,6 +69,7 @@ The LangGraph orchestration pipeline coordinates five distinct AI agents:
 - Docker & Docker Compose
 - Node.js 18+ (if running frontend locally outside Docker)
 - A Google Gemini API Key (`GEMINI_API_KEY`)
+- A Tavily API Key (`TAVILY_API_KEY`)
 
 ### 1. Clone & Configure
 ```bash
@@ -77,7 +79,7 @@ cd AMIVRE
 # Set up backend environment variables
 cp backend/.env.example backend/.env
 ```
-*Make sure to add your `GEMINI_API_KEY` to the `backend/.env` file.*
+*Make sure to add your `GEMINI_API_KEY` and `TAVILY_API_KEY` to the `backend/.env` file.*
 
 ### 2. Run the Entire Stack (Docker)
 AMIVRE is fully dockerized for instant deployment. You do not need to install Node.js or Python locally.
@@ -99,9 +101,9 @@ This single command spins up the entire enterprise stack:
 
 1. **Submission**: User submits a business idea via the Next.js frontend.
 2. **Delegation**: FastAPI enqueues a Celery task.
-3. **Orchestration**: Celery triggers the LangGraph state machine.
-4. **Live Scraping**: Each agent concurrently fires asynchronous headless browsers and API requests to pull real-time data.
-5. **Prompt Injection**: The raw scraped data is token-truncated and injected directly into the Gemini context windows.
+3. **Orchestration**: Celery triggers the LangGraph state machine, starting with the Master Query Node.
+4. **Agentic Research**: Each agent takes its generated queries, searches via Tavily, and uses Crawl4AI (headless Chromium) to dynamically render and extract high-quality Markdown from live websites.
+5. **Prompt Injection**: The raw extracted Markdown is token-truncated (Quota Mitigation) and injected directly into the Gemini context windows.
 6. **Live Streaming**: As agents work, the backend pushes `AGENT_RUNNING` and `AGENT_COMPLETE` WebSocket events to the frontend, powering a real-time progress terminal.
 7. **Synthesis**: The Risk Modeller compiles the final report, which is saved to Postgres and displayed elegantly in the UI.
 

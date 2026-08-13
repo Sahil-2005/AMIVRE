@@ -10,31 +10,34 @@ class TrendForecasterAgent(BaseAgent):
     def run(self, state: dict) -> dict:
         business_idea = state.get("business_idea", "")
         target_market = state.get("target_market", "")
+        queries = state.get("trend_queries", [])
         job_id = state.get("_job_id")
 
-        self._publish_progress(job_id, "Trend_Forecaster", "AGENT_RUNNING", "Querying Hacker News developer chatter...")
+        self._publish_progress(job_id, "Trend_Forecaster", "AGENT_RUNNING", "Querying market trends via Tavily and Crawl4AI...")
 
         from app.scrapers.scraper_runner import build_trend_context
         context_string, raw_data = asyncio.run(
-            build_trend_context(business_idea, target_market)
+            build_trend_context(queries)
         )
 
-        self._publish_progress(job_id, "Trend_Forecaster", "AGENT_RUNNING", "Analyzing Google Trends search volume data...")
+        self._publish_progress(job_id, "Trend_Forecaster", "AGENT_RUNNING", "Decoding market momentum...")
 
         prompt = f"""
-        Act as a market trend forecaster.
-        We are building a product based on this idea: '{business_idea}' for the '{target_market}' market.
+        Analyze the market trends for this business idea.
         
-        Using the provided live Hacker News discussions and Google Trends data as your primary evidence:
-        1. Determine the market phase (Emerging, Growing, Mature, or Declining). Justify with data points from the context.
-        2. Detect rising sub-topics within this market based on what developers are actually discussing.
-        3. Identify seasonal patterns or fluctuations in demand based on the trend data.
+        Business Idea: {business_idea}
+        Target Market: {target_market}
+        
+        Use the provided web research AND your knowledge base to extract:
+        - The current market phase (Emerging, Growing, Mature, or Declining).
+        - Any rising sub-topics or niche trends.
+        - Any seasonal patterns affecting this market.
         
         STRICT CITATION RULES:
-        1. Look for lines starting with "Source URL:" in the provided context. These are the ONLY valid URLs.
-        2. For each HN story or trend used, add an entry to the `sources` array with the exact `url` from the "Source URL:" line, the `title`, and `platform` set to "Hacker News" or "Google Trends".
+        1. Look for lines starting with "### Source URL:" in the provided context. These are the ONLY valid URLs.
+        2. For each source used, add an entry to the `sources` array with the exact `url` from the "### Source URL:" line, the `title` of the section, and `platform` set to "Web Research".
         3. DO NOT invent, guess, or hallucinate any URLs. If no Source URL is available, leave the `sources` array empty.
-        4. Never use generic URLs like "https://news.ycombinator.com" or "https://trends.google.com". Only use full, specific URLs from the context.
+        4. Never use generic URLs. Only use full, specific URLs from the context.
         """
 
         result = self.execute_with_structured_output(

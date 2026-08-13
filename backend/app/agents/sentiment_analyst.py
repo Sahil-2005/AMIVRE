@@ -10,31 +10,33 @@ class SentimentAnalystAgent(BaseAgent):
     def run(self, state: dict) -> dict:
         business_idea = state.get("business_idea", "")
         target_market = state.get("target_market", "")
+        queries = state.get("sentiment_queries", [])
         job_id = state.get("_job_id")
 
-        self._publish_progress(job_id, "Sentiment_Analyst", "AGENT_RUNNING", "Loading Reddit community discussions...")
+        self._publish_progress(job_id, "Sentiment_Analyst", "AGENT_RUNNING", "Analyzing sentiment via Tavily and Crawl4AI...")
 
         from app.scrapers.scraper_runner import build_sentiment_context
         context_string, raw_data = asyncio.run(
-            build_sentiment_context(business_idea, target_market)
+            build_sentiment_context(queries)
         )
 
-        self._publish_progress(job_id, "Sentiment_Analyst", "AGENT_RUNNING", "Running sentiment analysis on user reviews...")
+        self._publish_progress(job_id, "Sentiment_Analyst", "AGENT_RUNNING", "Extracting pain points and desires...")
 
         prompt = f"""
-        Act as a web sentiment analyst.
-        We are building a product based on this idea: '{business_idea}' for the '{target_market}' market.
+        Analyze the following business idea and target market.
         
-        Using the provided real user posts and reviews from Reddit and app stores, perform the following:
-        1. Identify the top pain points users experience in this market right now. Be specific and use evidence from the data.
-        2. Identify the top 5 desires or positive wishes users express heavily in the reviews.
-        3. Calculate a sentiment score between -1.0 (extremely negative) to 1.0 (extremely positive) for each pain point cluster.
+        Business Idea: {business_idea}
+        Target Market: {target_market}
+        
+        Use the provided live user discussions and reviews AND your knowledge base to extract:
+        - The top pain points of users in this space, including a sentiment score (-1.0 to 1.0).
+        - The top 5 user desires or feature requests.
         
         STRICT CITATION RULES:
-        1. Look for lines starting with "Source URL:" in the provided context. These are the ONLY valid URLs.
-        2. For each review or post used, add an entry to the `sources` array with the exact `url` from the "Source URL:" line (or use the subreddit URL for reddit posts), the `title` of the review/post, and `platform` set to "Reddit" or "Google Play".
+        1. Look for lines starting with "### Source URL:" in the provided context. These are the ONLY valid URLs.
+        2. For each source used, add an entry to the `sources` array with the exact `url` from the "### Source URL:" line, the `title` of the section, and `platform` set to "Web Research".
         3. DO NOT invent, guess, or hallucinate any URLs. If no Source URL is available, leave the `sources` array empty.
-        4. Never use generic URLs like "https://reddit.com" or "https://play.google.com". Only use full, specific URLs from the context.
+        4. Never use generic URLs. Only use full, specific URLs from the context.
         """
 
         result = self.execute_with_structured_output(

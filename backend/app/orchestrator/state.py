@@ -98,6 +98,12 @@ class AgentState(TypedDict):
     # Internal: passed by the Celery worker so agents can publish WebSocket events
     _job_id: Optional[str]
 
+    # Pre-generated queries from the Master Query Node
+    market_queries: list[str]
+    sentiment_queries: list[str]
+    competitor_queries: list[str]
+    trend_queries: list[str]
+
     # Raw scraped data natively held for the frontend drawer (Merged properly in parallel)
     scraped_data: Annotated[dict, merge_dicts]
 
