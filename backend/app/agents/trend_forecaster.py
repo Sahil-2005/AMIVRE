@@ -15,9 +15,12 @@ class TrendForecasterAgent(BaseAgent):
 
         self._publish_progress(job_id, "Trend_Forecaster", "AGENT_RUNNING", "Querying market trends via Tavily and Crawl4AI...")
 
+        def progress_callback(msg: str):
+            self._publish_progress(job_id, "Trend_Forecaster", "AGENT_RUNNING", msg)
+
         from app.scrapers.scraper_runner import build_trend_context
         context_string, raw_data = asyncio.run(
-            build_trend_context(queries)
+            build_trend_context(queries, progress_callback)
         )
 
         self._publish_progress(job_id, "Trend_Forecaster", "AGENT_RUNNING", "Decoding market momentum...")

@@ -15,9 +15,12 @@ class SentimentAnalystAgent(BaseAgent):
 
         self._publish_progress(job_id, "Sentiment_Analyst", "AGENT_RUNNING", "Analyzing sentiment via Tavily and Crawl4AI...")
 
+        def progress_callback(msg: str):
+            self._publish_progress(job_id, "Sentiment_Analyst", "AGENT_RUNNING", msg)
+
         from app.scrapers.scraper_runner import build_sentiment_context
         context_string, raw_data = asyncio.run(
-            build_sentiment_context(queries)
+            build_sentiment_context(queries, progress_callback)
         )
 
         self._publish_progress(job_id, "Sentiment_Analyst", "AGENT_RUNNING", "Extracting pain points and desires...")

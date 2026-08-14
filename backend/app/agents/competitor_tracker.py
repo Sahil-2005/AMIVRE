@@ -13,14 +13,17 @@ class CompetitorTrackerAgent(BaseAgent):
         queries = state.get("competitor_queries", [])
         job_id = state.get("_job_id")
 
-        self._publish_progress(job_id, "Competitor_Tracker", "AGENT_RUNNING", "Mapping competitor landscape via Tavily and Crawl4AI...")
+        self._publish_progress(job_id, "Competitor_Tracker", "AGENT_RUNNING", "Tracking competitors via Tavily and Crawl4AI...")
+
+        def progress_callback(msg: str):
+            self._publish_progress(job_id, "Competitor_Tracker", "AGENT_RUNNING", msg)
 
         from app.scrapers.scraper_runner import build_competitor_context
         context_string, raw_data = asyncio.run(
-            build_competitor_context(queries)
+            build_competitor_context(queries, progress_callback)
         )
 
-        self._publish_progress(job_id, "Competitor_Tracker", "AGENT_RUNNING", "Analyzing competitor features and weaknesses...")
+        self._publish_progress(job_id, "Competitor_Tracker", "AGENT_RUNNING", "Mapping competitor strengths and weaknesses...")
 
         prompt = f"""
         Analyze the competitive landscape for this business idea.

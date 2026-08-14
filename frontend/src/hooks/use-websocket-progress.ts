@@ -76,14 +76,9 @@ export function useWebsocketProgress(jobId: string) {
           }
 
           if (data.status === 'RUNNING' && prev.status === 'PENDING') {
-            // Job started — flip all parallel agents to RUNNING
+            // Job started — only the first agent (Market_Scout) should flip to RUNNING
             newState.status = 'RUNNING';
-            const parallelAgents: (keyof ProgressState['agents'])[] = [
-              'Market_Scout', 'Sentiment_Analyst', 'Competitor_Tracker', 'Trend_Forecaster'
-            ];
-            parallelAgents.forEach(a => {
-              newState.agents[a] = { status: 'RUNNING', progress: 5, message: 'Initializing...' };
-            });
+            newState.agents.Market_Scout = { status: 'RUNNING', progress: 5, message: 'Initializing...' };
             newState.overallProgress = 5;
 
           } else if (data.status === 'AGENT_RUNNING' && agentName && newState.agents[agentName]) {
@@ -99,13 +94,21 @@ export function useWebsocketProgress(jobId: string) {
           } else if (data.status === 'AGENT_COMPLETE' && agentName && newState.agents[agentName]) {
             newState.agents[agentName] = { status: 'COMPLETED', progress: 100, message: 'Done' };
 
-            const completedCount = Object.values(newState.agents).filter(a => a.status === 'COMPLETED').length;
-            if (completedCount === 4 && newState.agents.Risk_Modeller.status === 'WAITING') {
+            // Cascade the RUNNING state to the next agent in the sequence
+            if (agentName === 'Market_Scout') {
+              newState.agents.Sentiment_Analyst = { status: 'RUNNING', progress: 5, message: 'Initializing...' };
+              newState.overallProgress = 20;
+            } else if (agentName === 'Sentiment_Analyst') {
+              newState.agents.Competitor_Tracker = { status: 'RUNNING', progress: 5, message: 'Initializing...' };
+              newState.overallProgress = 40;
+            } else if (agentName === 'Competitor_Tracker') {
+              newState.agents.Trend_Forecaster = { status: 'RUNNING', progress: 5, message: 'Initializing...' };
+              newState.overallProgress = 60;
+            } else if (agentName === 'Trend_Forecaster') {
               newState.agents.Risk_Modeller = { status: 'RUNNING', progress: 10, message: 'Synthesizing final risk model...' };
               newState.overallProgress = 80;
-            } else {
-              newState.overallProgress = Math.min(10 + completedCount * 17, 80);
             }
+
 
           } else if (data.status === 'COMPLETED') {
             newState.status = 'COMPLETED';

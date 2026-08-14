@@ -16,10 +16,14 @@ class MarketScoutAgent(BaseAgent):
 
         self._publish_progress(job_id, "Market_Scout", "AGENT_RUNNING", "Running autonomous market research via Tavily and Crawl4AI...")
 
+        # Progress callback to send live updates to frontend
+        def progress_callback(msg: str):
+            self._publish_progress(job_id, "Market_Scout", "AGENT_RUNNING", msg)
+
         # Run async scraper in a sync context
         from app.scrapers.scraper_runner import build_market_scout_context
         context_string, raw_data = asyncio.run(
-            build_market_scout_context(queries)
+            build_market_scout_context(queries, progress_callback)
         )
 
         self._publish_progress(job_id, "Market_Scout", "AGENT_RUNNING", "Analyzing market sizing and saturation...")

@@ -65,37 +65,66 @@ The LangGraph orchestration pipeline coordinates a Master Query Node and five di
 
 ## 🚀 Getting Started
 
+To ensure maximum performance on local machines (especially Windows/WSL), AMIVRE uses a split architecture: the heavy backend services run in Docker, while the Next.js frontend runs natively to provide lightning-fast hot-reloading.
+
 ### Prerequisites
-- Docker & Docker Compose
-- Node.js 18+ (if running frontend locally outside Docker)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Running and active)
+- [Node.js 18+](https://nodejs.org/en/) (For the frontend)
 - A Google Gemini API Key (`GEMINI_API_KEY`)
 - A Tavily API Key (`TAVILY_API_KEY`)
 
-### 1. Clone & Configure
+### 1. Clone the Repository
 ```bash
 git clone https://github.com/Sahil-2005/AMIVRE.git
 cd AMIVRE
+```
 
-# Set up backend environment variables
+### 2. Configure Environment Variables
+You need to set up environment variables for **both** the backend and the frontend.
+
+**Backend Configuration:**
+```bash
 cp backend/.env.example backend/.env
 ```
-*Make sure to add your `GEMINI_API_KEY` and `TAVILY_API_KEY` to the `backend/.env` file.*
+Open `backend/.env` and add your API keys:
+```env
+GEMINI_API_KEY=your_gemini_api_key_here
+TAVILY_API_KEY=your_tavily_api_key_here
+```
 
-### 2. Run the Entire Stack (Docker)
-AMIVRE is fully dockerized for instant deployment. You do not need to install Node.js or Python locally.
+**Frontend Configuration:**
+Create a new file named `.env.local` inside the `frontend` directory:
+```bash
+# On Windows PowerShell:
+New-Item -Path frontend\.env.local -ItemType File
 
+# On Mac/Linux:
+touch frontend/.env.local
+```
+Open `frontend/.env.local` and add the following lines to connect the UI to the Docker backend:
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+NEXT_PUBLIC_WS_URL=ws://localhost:8000/api/v1/ws
+```
+
+### 3. Run the Backend Stack (Docker)
+We use Docker to spin up the FastAPI server, Celery worker, PostgreSQL, Redis, and Qdrant. 
+From the root of the project, run:
 ```bash
 docker compose -f docker/docker-compose.yml up -d --build
 ```
-This single command spins up the entire enterprise stack:
-- Next.js Frontend (Available at `http://localhost:3000`)
-- FastAPI Backend (Available at `http://localhost:8000`)
-- Celery Worker (Async Task Engine)
-- Redis (Message Broker)
-- PostgreSQL (Database)
-- Qdrant (Vector DB)
+*Note: The first time you run this, it may take 5-10 minutes to build the Celery worker, as it downloads heavy Machine Learning libraries and Chromium for web scraping.*
 
----
+You can verify the backend is running by visiting `http://localhost:8000/docs` to see the Swagger UI.
+
+### 4. Run the Frontend (Native)
+Open a **new terminal window**, navigate to the frontend directory, install dependencies, and start the development server:
+```bash
+cd frontend
+npm install
+npm run dev
+```
+The interactive dashboard is now available at `http://localhost:3000`!
 
 ## 📂 Architecture & Dataflow
 

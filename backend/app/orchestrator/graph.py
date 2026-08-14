@@ -57,15 +57,13 @@ def build_graph():
     workflow.add_node("Risk_Modeller",     _make_node(risk_modeller,     "Risk_Modeller"))
 
     workflow.add_edge(START, "Master_Query_Node")
+    
+    # Run agents sequentially to avoid LLM rate limits and massive browser tab spikes
     workflow.add_edge("Master_Query_Node", "Market_Scout")
-    workflow.add_edge("Master_Query_Node", "Sentiment_Analyst")
-    workflow.add_edge("Master_Query_Node", "Competitor_Tracker")
-    workflow.add_edge("Master_Query_Node", "Trend_Forecaster")
-
-    workflow.add_edge("Market_Scout",      "Risk_Modeller")
-    workflow.add_edge("Sentiment_Analyst", "Risk_Modeller")
-    workflow.add_edge("Competitor_Tracker","Risk_Modeller")
-    workflow.add_edge("Trend_Forecaster",  "Risk_Modeller")
+    workflow.add_edge("Market_Scout", "Sentiment_Analyst")
+    workflow.add_edge("Sentiment_Analyst", "Competitor_Tracker")
+    workflow.add_edge("Competitor_Tracker", "Trend_Forecaster")
+    workflow.add_edge("Trend_Forecaster", "Risk_Modeller")
 
     workflow.add_edge("Risk_Modeller", END)
 
