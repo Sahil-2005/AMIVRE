@@ -1,6 +1,6 @@
 'use client';
 import { MarketData } from '@/types/api';
-import { Badge } from '@/components/ui/badge';
+
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { TrendingUp, Target, Scale, AlertCircle } from 'lucide-react';
 import { CitationSources } from '@/components/analysis/citation-sources';
@@ -19,7 +19,7 @@ export function MarketTab({ data }: { data: MarketData }) {
     { name: 'SOM', value: parseValue(data.serviceable_obtainable_market), label: data.serviceable_obtainable_market, desc: 'Serviceable Obtainable' },
   ];
 
-  const CustomTooltip = ({ active, payload }: any) => {
+  const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ payload: { name: string; label: string; desc: string } }> }) => {
     if (active && payload && payload.length) {
       return (
         <div className="rounded-xl border border-white/10 bg-card/90 backdrop-blur-md shadow-xl p-4">

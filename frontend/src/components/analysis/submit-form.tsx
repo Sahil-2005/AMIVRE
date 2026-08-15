@@ -9,7 +9,7 @@ import { ArrowRight, Loader2, Zap, Globe, Users, Layers } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
 
 const DEPTH_OPTIONS = [
   { value: 'QUICK', label: 'Quick Scan', desc: '· Quick market overview', icon: Zap },
@@ -43,9 +43,10 @@ export function SubmitForm() {
       });
       toast.success('Agents deployed successfully!');
       router.push(`/analysis/${response.data.job_id}`);
-    } catch (error: any) {
-      if (error.response?.status === 429) toast.error('Daily limit reached. Try again tomorrow.');
-      else if (error.response?.status === 422) toast.error('Idea needs more detail — at least 50 words.');
+    } catch (error: unknown) {
+      const err = error as { response?: { status?: number } };
+      if (err.response?.status === 429) toast.error('Daily limit reached. Try again tomorrow.');
+      else if (err.response?.status === 422) toast.error('Idea needs more detail — at least 50 words.');
       else toast.error('Failed to submit. Please try again.');
       setLoading(false);
     }

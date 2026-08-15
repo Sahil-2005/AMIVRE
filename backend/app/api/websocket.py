@@ -63,8 +63,8 @@ async def websocket_progress(
                 if data.get("status") in ["COMPLETED", "FAILED", "PARTIAL"]:
                     break
 
-            # Polling connection state
-            await asyncio.sleep(1)
+            # Tight polling for near-instant message relay
+            await asyncio.sleep(0.1)
 
     except WebSocketDisconnect:
         pass

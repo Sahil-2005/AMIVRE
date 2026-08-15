@@ -1,8 +1,6 @@
 import { TrendData } from '@/types/api';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
-import { Activity, Hash, CalendarDays, TrendingUp, Sparkles, AlertCircle } from 'lucide-react';
 import { CitationSources } from '@/components/analysis/citation-sources';
-import { TrendingUp as TrendingUpIcon, Hash as HashIcon, CalendarClock, Rocket, ArrowUpRight, Waves, BarChart3 } from 'lucide-react';
+import { CalendarClock, Rocket, ArrowUpRight, Waves, BarChart3, TrendingUp, Hash } from 'lucide-react';
 
 export function TrendsTab({ data }: { data: TrendData }) {
   const getPhaseConfig = (phase: string) => {

@@ -9,6 +9,15 @@ import redis
 
 logger = logging.getLogger(__name__)
 
+# Module-level Redis connection pool — reused by all agents across all publish calls.
+# Avoids the overhead of creating and closing a new TCP connection on every progress event.
+_redis_pool = redis.ConnectionPool.from_url(settings.REDIS_URL, decode_responses=True)
+
+
+def _get_redis():
+    """Return a Redis client backed by the shared connection pool."""
+    return redis.Redis(connection_pool=_redis_pool)
+
 
 class BaseAgent:
     """
@@ -36,10 +45,9 @@ class BaseAgent:
                 "agent_name": agent_name,
                 "message": message,
             })
-            # Use a fresh synchronous client to avoid thread/asyncio loop bounds issues
-            sync_redis = redis.from_url(settings.REDIS_URL, decode_responses=True)
-            sync_redis.publish(f"progress:{job_id}", payload)
-            sync_redis.close()
+            # Reuse the module-level connection pool — no TCP overhead per call
+            r = _get_redis()
+            r.publish(f"progress:{job_id}", payload)
         except Exception as e:
             logger.warning(f"Could not publish progress event: {e}")
 

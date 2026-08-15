@@ -72,7 +72,7 @@ export interface AnalysisResult {
   competitor_data: CompetitorData
   trend_data: TrendData
   risk_assessment: RiskAssessment
-  scraped_data?: Record<string, any>
+  scraped_data?: Record<string, Array<{ url: string; content: string }>>
 }
 
 export interface AnalysisJobResponse {

@@ -10,11 +10,11 @@ import {
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Button } from "@/components/ui/button";
+
 import { FileSearch } from "lucide-react";
 
 interface ScrapedDataDrawerProps {
-  scrapedData?: Record<string, any>;
+  scrapedData?: Record<string, Array<{ url: string; content: string }>>;
 }
 
 export function ScrapedDataDrawer({ scrapedData }: ScrapedDataDrawerProps) {

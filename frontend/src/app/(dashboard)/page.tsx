@@ -10,7 +10,7 @@ import { AnalysisHistoryTable } from '@/components/dashboard/analysis-history-ta
 import { ArrowRight, BarChart3, CheckCircle2, Clock, PlusCircle, TrendingUp, Zap } from 'lucide-react';
 
 export default function DashboardPage() {
-  const { isAuthenticated, setUser, user } = useAuthStore();
+  const { setUser, user } = useAuthStore();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ total: 0, completed: 0, running: 0 });
@@ -24,15 +24,16 @@ export default function DashboardPage() {
         const jobs = data.items || [];
         setStats({
           total: jobs.length,
-          completed: jobs.filter((j: any) => j.status === 'COMPLETED').length,
-          running: jobs.filter((j: any) => j.status === 'RUNNING' || j.status === 'PENDING').length,
+          completed: jobs.filter((j: { status: string }) => j.status === 'COMPLETED').length,
+          running: jobs.filter((j: { status: string }) => j.status === 'RUNNING' || j.status === 'PENDING').length,
         });
         setLoading(false);
-      } catch (e) {
+      } catch {
         router.push('/login');
       }
     };
     checkAuth();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (loading) {
@@ -146,7 +147,7 @@ export default function DashboardPage() {
 function StatCard({ label, value, icon: Icon, iconColor, bgColor, trend, pulse = false }: {
   label: string;
   value: number;
-  icon: any;
+  icon: React.ComponentType<{ className?: string }>;
   iconColor: string;
   bgColor: string;
   trend: string;

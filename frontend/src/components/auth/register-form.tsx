@@ -6,7 +6,7 @@ import { authApi } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+
 import { toast } from 'sonner';
 
 export function RegisterForm() {
@@ -35,7 +35,7 @@ export function RegisterForm() {
       await authApi.register({ email, password });
       toast.success('Registration successful. Please log in.');
       router.push('/login');
-    } catch (error) {
+    } catch {
       toast.error('Registration failed. Email might already be in use.');
     } finally {
       setLoading(false);
