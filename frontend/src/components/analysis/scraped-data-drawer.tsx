@@ -22,11 +22,9 @@ export function ScrapedDataDrawer({ scrapedData }: ScrapedDataDrawerProps) {
 
   return (
     <Sheet>
-      <SheetTrigger asChild>
-        <Button variant="outline" className="gap-2">
-          <FileSearch className="h-4 w-4" />
-          View Scraper Receipts
-        </Button>
+      <SheetTrigger className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 gap-2">
+        <FileSearch className="h-4 w-4" />
+        View Scraper Receipts
       </SheetTrigger>
       <SheetContent className="w-[400px] sm:w-[540px] sm:max-w-none flex flex-col h-full border-l border-white/10 bg-black/95 backdrop-blur-xl">
         <SheetHeader className="mb-4">

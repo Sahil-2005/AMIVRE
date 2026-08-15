@@ -7,6 +7,7 @@ export interface AgentProgressData {
   status: AgentStatus;
   progress: number;
   message: string;
+  sources: string[];
 }
 
 export interface ProgressState {
@@ -22,7 +23,7 @@ export interface ProgressState {
   };
 }
 
-const initialAgent: AgentProgressData = { status: 'WAITING', progress: 0, message: '' };
+const initialAgent: AgentProgressData = { status: 'WAITING', progress: 0, message: '', sources: [] };
 
 const initialState: ProgressState = {
   status: 'PENDING',
@@ -78,34 +79,45 @@ export function useWebsocketProgress(jobId: string) {
           if (data.status === 'RUNNING' && prev.status === 'PENDING') {
             // Job started — only the first agent (Market_Scout) should flip to RUNNING
             newState.status = 'RUNNING';
-            newState.agents.Market_Scout = { status: 'RUNNING', progress: 5, message: 'Initializing...' };
+            newState.agents.Market_Scout = { ...newState.agents.Market_Scout, status: 'RUNNING', progress: 5, message: 'Initializing...' };
             newState.overallProgress = 5;
 
           } else if (data.status === 'AGENT_RUNNING' && agentName && newState.agents[agentName]) {
             // Live activity update for a specific agent
+            const updatedSources = [...newState.agents[agentName].sources];
+            if (message.startsWith('Scraping: ')) {
+              const domain = message.replace('Scraping: ', '').replace('...', '').trim();
+              if (domain && !updatedSources.includes(domain)) {
+                updatedSources.push(domain);
+                // Keep only the last 6 sources to avoid overflowing the UI
+                if (updatedSources.length > 6) updatedSources.shift();
+              }
+            }
+
             newState.agents[agentName] = {
               ...newState.agents[agentName],
               status: 'RUNNING',
               message,
+              sources: updatedSources,
               // Nudge the individual bar forward a bit
               progress: Math.min(newState.agents[agentName].progress + 15, 85),
             };
 
           } else if (data.status === 'AGENT_COMPLETE' && agentName && newState.agents[agentName]) {
-            newState.agents[agentName] = { status: 'COMPLETED', progress: 100, message: 'Done' };
+            newState.agents[agentName] = { ...newState.agents[agentName], status: 'COMPLETED', progress: 100, message: 'Done' };
 
             // Cascade the RUNNING state to the next agent in the sequence
             if (agentName === 'Market_Scout') {
-              newState.agents.Sentiment_Analyst = { status: 'RUNNING', progress: 5, message: 'Initializing...' };
+              newState.agents.Sentiment_Analyst = { ...newState.agents.Sentiment_Analyst, status: 'RUNNING', progress: 5, message: 'Initializing...' };
               newState.overallProgress = 20;
             } else if (agentName === 'Sentiment_Analyst') {
-              newState.agents.Competitor_Tracker = { status: 'RUNNING', progress: 5, message: 'Initializing...' };
+              newState.agents.Competitor_Tracker = { ...newState.agents.Competitor_Tracker, status: 'RUNNING', progress: 5, message: 'Initializing...' };
               newState.overallProgress = 40;
             } else if (agentName === 'Competitor_Tracker') {
-              newState.agents.Trend_Forecaster = { status: 'RUNNING', progress: 5, message: 'Initializing...' };
+              newState.agents.Trend_Forecaster = { ...newState.agents.Trend_Forecaster, status: 'RUNNING', progress: 5, message: 'Initializing...' };
               newState.overallProgress = 60;
             } else if (agentName === 'Trend_Forecaster') {
-              newState.agents.Risk_Modeller = { status: 'RUNNING', progress: 10, message: 'Synthesizing final risk model...' };
+              newState.agents.Risk_Modeller = { ...newState.agents.Risk_Modeller, status: 'RUNNING', progress: 10, message: 'Synthesizing final risk model...' };
               newState.overallProgress = 80;
             }
 
@@ -114,13 +126,14 @@ export function useWebsocketProgress(jobId: string) {
             newState.status = 'COMPLETED';
             newState.overallProgress = 100;
             Object.keys(newState.agents).forEach(key => {
-              newState.agents[key as keyof ProgressState['agents']] = { status: 'COMPLETED', progress: 100, message: 'Done' };
+              const k = key as keyof ProgressState['agents'];
+              newState.agents[k] = { ...newState.agents[k], status: 'COMPLETED', progress: 100, message: 'Done' };
             });
 
           } else if (data.status === 'FAILED') {
             newState.status = 'FAILED';
             if (agentName && newState.agents[agentName]) {
-              newState.agents[agentName] = { status: 'FAILED', progress: 0, message };
+              newState.agents[agentName] = { ...newState.agents[agentName], status: 'FAILED', progress: 0, message };
             }
           }
 
