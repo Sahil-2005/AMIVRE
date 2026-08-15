@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:16-alpine
@@ -11,13 +9,11 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-    profiles: ["default", "production"]
 
   redis:
     image: redis:7-alpine
     ports:
       - "6379:6379"
-    profiles: ["default", "production"]
 
   qdrant:
     image: qdrant/qdrant:latest
@@ -25,12 +21,11 @@ services:
       - "6333:6333"
     volumes:
       - qdrantdata:/qdrant/storage
-    profiles: ["default", "production"]
 
   backend:
     build:
-      context: ./
-      dockerfile: Dockerfile.backend
+      context: ../
+      dockerfile: docker/Dockerfile.backend
     ports:
       - "8000:8000"
     volumes:
@@ -42,16 +37,15 @@ services:
       - CELERY_RESULT_BACKEND=redis://redis:6379/2
       - QDRANT_URL=http://qdrant:6333
     env_file:
-      - ../backend/.env.example
+      - ../backend/.env
     depends_on:
       - postgres
       - redis
-    profiles: ["default", "production"]
 
   worker:
     build:
-      context: ./
-      dockerfile: Dockerfile.celery
+      context: ../
+      dockerfile: docker/Dockerfile.celery
     volumes:
       - ../backend:/app
     environment:
@@ -61,11 +55,14 @@ services:
       - CELERY_RESULT_BACKEND=redis://redis:6379/2
       - QDRANT_URL=http://qdrant:6333
     env_file:
-      - ../backend/.env.example
+      - ../backend/.env
     depends_on:
       - backend
       - redis
-    profiles: ["default", "production"]
+    deploy:
+      resources:
+        limits:
+          memory: 2G
 
 volumes:
   pgdata:

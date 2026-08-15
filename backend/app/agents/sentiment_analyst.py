@@ -1,27 +1,57 @@
+import asyncio
 from app.agents.base_agent import BaseAgent
 from app.orchestrator.state import SentimentOutput
 
 
 class SentimentAnalystAgent(BaseAgent):
     def __init__(self):
-        super().__init__(model_name="gemini-1.5-flash")
+        super().__init__(model_name="gemini-3.5-flash")
 
     def run(self, state: dict) -> dict:
         business_idea = state.get("business_idea", "")
         target_market = state.get("target_market", "")
+        queries = state.get("sentiment_queries", [])
+        job_id = state.get("_job_id")
+
+        self._publish_progress(job_id, "Sentiment_Analyst", "AGENT_RUNNING", "Analyzing sentiment via Tavily and Crawl4AI...")
+
+        def progress_callback(msg: str):
+            self._publish_progress(job_id, "Sentiment_Analyst", "AGENT_RUNNING", msg)
+
+        from app.scrapers.scraper_runner import build_sentiment_context
+        context_string, raw_data = asyncio.run(
+            build_sentiment_context(queries, progress_callback)
+        )
+
+        self._publish_progress(job_id, "Sentiment_Analyst", "AGENT_RUNNING", "Extracting pain points and desires...")
 
         prompt = f"""
-        Act as a web sentiment analyst.
-        We are building a product based on this idea: '{business_idea}' for the '{target_market}' market.
+        Analyze the following business idea and target market.
         
-        Simulate scraping public forums like Reddit and review platforms like Trustpilot for competitors in this space.
-        Identify the top pain points users experience in this market right now.
-        Identify the top 5 desires or positive wishes users express heavily in reviews.
-        Calculate a sentiment score between -1.0 (extremely negative) to 1.0 (extremely positive) for each pain point cluster.
+        Business Idea: {business_idea}
+        Target Market: {target_market}
+        
+        Use the provided live user discussions and reviews AND your knowledge base to extract:
+        - The top pain points of users in this space, including a sentiment score (-1.0 to 1.0).
+        - The top 5 user desires or feature requests.
+        
+        STRICT CITATION RULES:
+        1. Look for lines starting with "### Source URL:" in the provided context. These are the ONLY valid URLs.
+        2. For each source used, add an entry to the `sources` array with the exact `url` from the "### Source URL:" line, the `title` of the section, and `platform` set to "Web Research".
+        3. DO NOT invent, guess, or hallucinate any URLs. If no Source URL is available, leave the `sources` array empty.
+        4. Never use generic URLs. Only use full, specific URLs from the context.
         """
 
         result = self.execute_with_structured_output(
-            prompt_template=prompt, input_vars={}, output_schema=SentimentOutput
+            prompt_template=prompt,
+            input_vars={},
+            output_schema=SentimentOutput,
+            context_string=context_string,
+            job_id=job_id,
+            agent_name="Sentiment_Analyst",
         )
 
-        return {"sentiment_data": result}
+        return {
+            "sentiment_data": result,
+            "scraped_data": {"sentiment_analyst": raw_data}
+        }

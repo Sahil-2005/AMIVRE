@@ -34,8 +34,8 @@ class AnalysisJob(Base):
     business_idea = Column(Text, nullable=False)
     target_market = Column(String, nullable=False)
     geography = Column(String, nullable=False)
-    status = Column(Enum(JobStatus), default=JobStatus.PENDING, index=True)
-    depth = Column(Enum(JobDepth), default=JobDepth.STANDARD)
+    status = Column(Enum(JobStatus, native_enum=False, length=50), default=JobStatus.PENDING, index=True)
+    depth = Column(Enum(JobDepth, native_enum=False, length=50), default=JobDepth.STANDARD)
 
     result_json = Column(JSONB, nullable=True)
     error_message = Column(Text, nullable=True)

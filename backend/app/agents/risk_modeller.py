@@ -4,7 +4,7 @@ from app.orchestrator.state import RiskModelOutput
 
 class RiskModellerAgent(BaseAgent):
     def __init__(self):
-        super().__init__(model_name="gemini-1.5-pro")
+        super().__init__(model_name="gemini-3.6-flash")
 
     def run(self, state: dict) -> dict:
         business_idea = state.get("business_idea", "")

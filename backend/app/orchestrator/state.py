@@ -1,5 +1,22 @@
-from typing import Dict, Any, Optional, TypedDict
+from typing import Dict, Any, Optional, TypedDict, Annotated
 from pydantic import BaseModel, Field
+import operator
+
+def merge_dicts(a: dict, b: dict) -> dict:
+    if not isinstance(a, dict):
+        a = {}
+    if not isinstance(b, dict):
+        b = {}
+    c = a.copy()
+    c.update(b)
+    return c
+
+
+class SourceInfo(BaseModel):
+    title: str = Field(description="Title of the source or claim")
+    url: str = Field(description="URL of the source")
+    platform: str = Field(description="Platform name (e.g., Wikipedia, Reddit, Google Play, Hacker News)")
+
 
 # ----------------- Single Agent Output Schemas -----------------
 
@@ -15,6 +32,7 @@ class MarketScoutOutput(BaseModel):
     saturation_justification: str = Field(
         description="Why the market is or isn't saturated"
     )
+    sources: list[SourceInfo] = Field(description="Citations for claims made in the market analysis", default_factory=list)
 
 
 class SentimentOutput(BaseModel):
@@ -22,6 +40,7 @@ class SentimentOutput(BaseModel):
         description="List of pain points with description and exact sentiment_score from -1.0 to 1.0"
     )
     top_desires: list[str] = Field(description="Top 5 user desires")
+    sources: list[SourceInfo] = Field(description="Citations for user sentiment claims", default_factory=list)
 
 
 class CompetitorOutput(BaseModel):
@@ -37,6 +56,7 @@ class CompetitorOutput(BaseModel):
     competitor_weaknesses: Dict[str, str] = Field(
         description="Mapping of competitor name to their primary weakness"
     )
+    sources: list[SourceInfo] = Field(description="Citations for competitor claims", default_factory=list)
 
 
 class TrendOutput(BaseModel):
@@ -45,6 +65,7 @@ class TrendOutput(BaseModel):
     )
     sub_topics: list[str] = Field(description="Detect rising sub-topics in the market")
     seasonal_patterns: str = Field(description="Identified seasonal demand patterns")
+    sources: list[SourceInfo] = Field(description="Citations for trend claims", default_factory=list)
 
 
 class RiskModelOutput(BaseModel):
@@ -61,6 +82,7 @@ class RiskModelOutput(BaseModel):
     )
     recommendation: str = Field(description="Go / Proceed with Caution / No-Go")
     justification: str = Field(description="Reasoning behind the final recommendation")
+    # Risk Modeller doesn't scrape, it relies on the others' sources
 
 
 # ----------------- LangGraph State -----------------
@@ -72,6 +94,18 @@ class AgentState(TypedDict):
     target_market: str
     geography: str
     depth: str
+
+    # Internal: passed by the Celery worker so agents can publish WebSocket events
+    _job_id: Optional[str]
+
+    # Pre-generated queries from the Master Query Node
+    market_queries: list[str]
+    sentiment_queries: list[str]
+    competitor_queries: list[str]
+    trend_queries: list[str]
+
+    # Raw scraped data natively held for the frontend drawer (Merged properly in parallel)
+    scraped_data: Annotated[dict, merge_dicts]
 
     # Partial outputs natively merged (no reducer needed because nodes will output dictionaries with these keys)
     market_data: Optional[MarketScoutOutput]

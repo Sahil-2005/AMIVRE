@@ -23,6 +23,9 @@ class Settings(BaseSettings):
     MAX_RETRIES: int = 3
     ENVIRONMENT: str = "development"
     ALLOWED_ORIGINS: List[str] = ["http://localhost:3000"]
+    
+    # Scraper Settings
+    TAVILY_API_KEY: str
 
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="ignore"
