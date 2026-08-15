@@ -71,9 +71,9 @@ export function useWebsocketProgress(jobId: string) {
 
           if (message) {
             newState.activityLog = [
+              ...prev.activityLog,
               { time: now(), message, agent: agentName || 'System' },
-              ...prev.activityLog.slice(0, 19), // keep last 20 entries
-            ];
+            ].slice(-50); // Keep last 50 entries in chronological order
           }
 
           if (data.status === 'RUNNING' && prev.status === 'PENDING') {

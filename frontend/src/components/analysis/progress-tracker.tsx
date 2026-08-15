@@ -141,7 +141,7 @@ function AgentCard({ agentKey, data, allAgents }: { agentKey: string; data: Agen
   // Normal Agent Cards
   return (
     <div
-      className={`relative rounded-2xl border p-5 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden flex flex-col gap-4
+      className={`relative rounded-2xl border p-5 transition-all duration-700 ease-out overflow-hidden flex flex-col gap-4
         ${isRunning ? `border-white/20 bg-white/[0.05] shadow-lg ${config.glow} scale-[1.01]` : 'border-white/5 bg-card'}
         ${isDone ? 'border-emerald-500/10 bg-emerald-500/[0.02]' : ''}
         ${isFailed ? 'border-red-500/20 bg-red-500/[0.04]' : ''}
@@ -208,7 +208,7 @@ function AgentCard({ agentKey, data, allAgents }: { agentKey: string; data: Agen
 
       {/* Expanded Accordion Area (Only visible when running) */}
       <div 
-        className={`grid transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]
+        className={`grid transition-all duration-700 ease-out
           ${isRunning ? 'grid-rows-[1fr] opacity-100 mt-2' : 'grid-rows-[0fr] opacity-0 mt-0'}
         `}
       >
@@ -246,7 +246,7 @@ function AgentCard({ agentKey, data, allAgents }: { agentKey: string; data: Agen
 
 export function ProgressTracker({ jobId, jobIdea, onComplete }: ProgressTrackerProps) {
   const progressState = useWebsocketProgress(jobId);
-  const logEndRef = useRef<HTMLDivElement>(null);
+  const logContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (progressState.status === 'COMPLETED') {
@@ -255,100 +255,121 @@ export function ProgressTracker({ jobId, jobIdea, onComplete }: ProgressTrackerP
     }
   }, [progressState.status, onComplete]);
 
+  // Smooth scroll ONLY the internal log container box, NEVER the window viewport
   useEffect(() => {
-    logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (logContainerRef.current) {
+      const container = logContainerRef.current;
+      container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+    }
   }, [progressState.activityLog.length]);
 
   const isFailed = progressState.status === 'FAILED';
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6 animate-in fade-in-0 duration-700">
+    <div className="w-full max-w-5xl mx-auto space-y-6 animate-in fade-in-0 duration-700">
       {/* Hero Header */}
-      <div className="text-center space-y-3 pb-2">
-        <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-semibold text-primary uppercase tracking-widest">
+      <div className="relative rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.06] via-card to-card p-6 md:p-8 text-center overflow-hidden shadow-2xl">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-24 bg-primary/20 blur-3xl pointer-events-none rounded-full" />
+        
+        <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-semibold text-primary uppercase tracking-widest mb-4 shadow-sm backdrop-blur-md">
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
             <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
           </span>
-          Live Intelligence Gathering
+          Autonomous Multi-Agent Intelligence Engine
         </div>
-        <h1 className="text-3xl font-black tracking-tight bg-gradient-to-b from-foreground to-foreground/60 bg-clip-text text-transparent">
-          Analyzing Your Venture
+        <h1 className="text-2xl md:text-4xl font-black tracking-tight bg-gradient-to-b from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent">
+          Stress-Testing Your Venture
         </h1>
-        <p className="text-sm text-muted-foreground max-w-lg mx-auto italic truncate">
+        <p className="text-sm md:text-base text-muted-foreground/90 max-w-xl mx-auto italic mt-2 truncate">
           &ldquo;{jobIdea}&rdquo;
         </p>
       </div>
 
-      <div className="grid lg:grid-cols-5 gap-5">
+      <div className="grid lg:grid-cols-5 gap-6">
         {/* Agent Cards — 3 cols */}
-        <div className="lg:col-span-3 space-y-3">
+        <div className="lg:col-span-3 space-y-3.5">
           {Object.entries(progressState.agents).map(([key, data]) => (
             <AgentCard key={key} agentKey={key} data={data} allAgents={progressState.agents} />
           ))}
         </div>
 
-        {/* Right Panel — Overall + Activity Log */}
+        {/* Right Panel — Overall Progress + Terminal Log */}
         <div className="lg:col-span-2 flex flex-col gap-5">
-          {/* Overall Progress Ring */}
-          <div className="rounded-2xl border border-white/5 bg-card p-6 flex flex-col items-center justify-center gap-4">
-            <div className="relative h-28 w-28">
+          {/* Overall Progress Gauge */}
+          <div className="rounded-2xl border border-white/10 bg-card/80 backdrop-blur-md p-6 flex flex-col items-center justify-center gap-4 shadow-xl">
+            <div className="relative h-32 w-32">
               <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="8" />
+                <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="7" />
                 <circle
                   cx="50" cy="50" r="42"
                   fill="none"
                   stroke="url(#progressGrad)"
-                  strokeWidth="8"
+                  strokeWidth="7"
                   strokeLinecap="round"
                   strokeDasharray={`${2 * Math.PI * 42}`}
                   strokeDashoffset={`${2 * Math.PI * 42 * (1 - progressState.overallProgress / 100)}`}
-                  className="transition-all duration-700 ease-out"
+                  className="transition-all duration-1000 ease-out"
                 />
                 <defs>
-                  <linearGradient id="progressGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <linearGradient id="progressGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                     <stop offset="0%" stopColor="#6366f1" />
-                    <stop offset="100%" stopColor="#8b5cf6" />
+                    <stop offset="50%" stopColor="#8b5cf6" />
+                    <stop offset="100%" stopColor="#ec4899" />
                   </linearGradient>
                 </defs>
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-3xl font-black tabular-nums">
+                <span className="text-3xl font-black tabular-nums tracking-tight">
                   {Math.round(progressState.overallProgress)}
                 </span>
-                <span className="text-xs text-muted-foreground font-medium">%</span>
+                <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">Percent</span>
               </div>
             </div>
             <div className="text-center">
-              <p className="font-semibold text-sm">Overall Progress</p>
+              <p className="font-bold text-sm">Overall Execution</p>
               <p className="text-xs text-muted-foreground mt-0.5">
-                {isFailed ? 'Analysis failed' : progressState.status === 'COMPLETED' ? 'Analysis complete!' : 'Estimated ~3 min'}
+                {isFailed ? 'Analysis failed' : progressState.status === 'COMPLETED' ? 'Analysis complete!' : 'Sequential Agent Execution'}
               </p>
             </div>
           </div>
 
-          {/* Live Activity Feed */}
-          <div className="flex-1 rounded-2xl border border-white/5 bg-card overflow-hidden flex flex-col">
-            <div className="px-5 py-4 border-b border-white/5 flex items-center gap-2">
-              <Activity className="h-4 w-4 text-primary" />
-              <span className="text-sm font-semibold">Live Activity</span>
-              <Zap className="h-3 w-3 text-amber-400 ml-auto" />
+          {/* Live Activity Terminal */}
+          <div className="flex-1 rounded-2xl border border-white/10 bg-black/60 backdrop-blur-xl overflow-hidden flex flex-col shadow-2xl min-h-[300px]">
+            <div className="px-4 py-3 border-b border-white/10 bg-white/[0.03] flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 mr-1">
+                  <span className="h-2.5 w-2.5 rounded-full bg-red-500/80 inline-block" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-amber-500/80 inline-block" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-500/80 inline-block" />
+                </div>
+                <Activity className="h-3.5 w-3.5 text-primary ml-1" />
+                <span className="text-xs font-mono font-semibold uppercase tracking-wider text-white/90">Agent Terminal Stream</span>
+              </div>
+              <Zap className="h-3.5 w-3.5 text-amber-400" />
             </div>
-            <div className="flex-1 overflow-y-auto p-4 space-y-2.5 max-h-64 scrollbar-thin">
+
+            {/* Scrollable Container without window scroll trigger */}
+            <div 
+              ref={logContainerRef}
+              className="flex-1 overflow-y-auto p-4 space-y-2 max-h-72 font-mono text-xs scrollbar-thin scrollbar-thumb-white/10"
+            >
               {progressState.activityLog.length === 0 ? (
-                <p className="text-xs text-muted-foreground text-center py-4">Waiting for agents to start...</p>
+                <div className="flex items-center justify-center h-full py-8 text-muted-foreground/60 gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  <span>Connecting to agent stream...</span>
+                </div>
               ) : (
                 progressState.activityLog.map((entry, i) => (
-                  <div key={i} className="flex items-start gap-2.5 text-xs animate-in slide-in-from-top-1 fade-in-0 duration-300">
-                    <span className="shrink-0 font-mono text-muted-foreground/60 mt-0.5">{entry.time}</span>
-                    <div>
-                      <span className="text-primary/70 font-medium">{entry.agent.replace('_', ' ')}</span>
-                      <span className="text-muted-foreground"> — {entry.message}</span>
-                    </div>
+                  <div key={i} className="flex items-start gap-2 text-xs leading-relaxed animate-in fade-in-0 duration-200 hover:bg-white/[0.02] p-1 rounded">
+                    <span className="shrink-0 text-white/40 select-none">[{entry.time}]</span>
+                    <span className="shrink-0 px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-semibold uppercase border border-primary/20">
+                      {entry.agent.replace('_', ' ')}
+                    </span>
+                    <span className="text-muted-foreground/90 break-words">{entry.message}</span>
                   </div>
                 ))
               )}
-              <div ref={logEndRef} />
             </div>
           </div>
         </div>
