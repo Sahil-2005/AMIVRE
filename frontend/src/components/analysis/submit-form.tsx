@@ -12,9 +12,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const DEPTH_OPTIONS = [
-  { value: 'QUICK', label: 'Quick Scan', desc: '~5 seconds · Surface-level market overview', icon: Zap },
-  { value: 'STANDARD', label: 'Standard', desc: '~10 seconds · Comprehensive analysis', icon: Layers },
-  { value: 'DEEP', label: 'Deep Dive', desc: '~15 seconds · Exhaustive multi-agent research', icon: Globe },
+  { value: 'QUICK', label: 'Quick Scan', desc: '· Quick market overview', icon: Zap },
+  { value: 'STANDARD', label: 'Standard', desc: '· Comprehensive analysis', icon: Layers },
+  { value: 'DEEP', label: 'Deep Dive', desc: '· Exhaustive multi-agent research', icon: Globe },
 ];
 
 export function SubmitForm() {
@@ -157,11 +157,10 @@ export function SubmitForm() {
                 type="button"
                 onClick={() => setDepth(option.value as JobDepth)}
                 disabled={loading}
-                className={`flex flex-col items-start gap-3 rounded-xl border p-4 text-left transition-all ${
-                  isSelected
-                    ? 'border-primary bg-primary/5 shadow-sm shadow-primary/10'
-                    : 'border-border/60 bg-background hover:border-border hover:bg-muted/40'
-                }`}
+                className={`flex flex-col items-start gap-3 rounded-xl border p-4 text-left transition-all ${isSelected
+                  ? 'border-primary bg-primary/5 shadow-sm shadow-primary/10'
+                  : 'border-border/60 bg-background hover:border-border hover:bg-muted/40'
+                  }`}
               >
                 <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${isSelected ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground'}`}>
                   <Icon className="h-4 w-4" />
