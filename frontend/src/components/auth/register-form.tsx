@@ -86,12 +86,12 @@ export function RegisterForm() {
           </div>
         </div>
         <div className="space-y-4 pt-2">
-          <Button type="submit" className="w-full h-11 text-base shadow-lg shadow-primary/20 transition-all hover:shadow-primary/30" disabled={loading}>
+          <Button type="submit" className="h-11 w-full bg-[#b7c6ff] text-base font-semibold text-[#0a0e1a] shadow-lg shadow-[#5d7bff]/20 transition-all hover:bg-[#c9d5ff] hover:shadow-[#5d7bff]/30" disabled={loading}>
             {loading ? 'Creating account...' : 'Sign up'}
           </Button>
           <div className="text-sm text-center text-muted-foreground">
             Already have an account?{' '}
-            <Button variant="link" className="p-0 font-semibold" onClick={(e) => { e.preventDefault(); router.push('/login'); }}>
+            <Button variant="link" className="p-0 font-semibold text-[#8fa4ff] hover:text-[#a9bcff]" onClick={(e) => { e.preventDefault(); router.push('/login'); }}>
               Log in
             </Button>
           </div>

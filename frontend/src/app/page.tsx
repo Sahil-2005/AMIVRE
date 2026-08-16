@@ -26,7 +26,7 @@ import Image from "next/image";
 
 const NAV_LINKS = [
   { label: "How it Works", href: "/platform" },
-//   { label: "Demo", href: "/demo" },
+  { label: "Demo", href: "/demo" },
 ];
 
 const FOOTER_LINKS = [
