@@ -1,4 +1,5 @@
 import asyncio
+
 from app.agents.base_agent import BaseAgent
 from app.orchestrator.state import TrendOutput
 
@@ -13,17 +14,25 @@ class TrendForecasterAgent(BaseAgent):
         queries = state.get("trend_queries", [])
         job_id = state.get("_job_id")
 
-        self._publish_progress(job_id, "Trend_Forecaster", "AGENT_RUNNING", "Querying market trends via Tavily and Crawl4AI...")
+        self._publish_progress(
+            job_id,
+            "Trend_Forecaster",
+            "AGENT_RUNNING",
+            "Querying market trends via Tavily and Crawl4AI...",
+        )
 
         def progress_callback(msg: str):
             self._publish_progress(job_id, "Trend_Forecaster", "AGENT_RUNNING", msg)
 
         from app.scrapers.scraper_runner import build_trend_context
+
         context_string, raw_data = asyncio.run(
             build_trend_context(queries, progress_callback)
         )
 
-        self._publish_progress(job_id, "Trend_Forecaster", "AGENT_RUNNING", "Decoding market momentum...")
+        self._publish_progress(
+            job_id, "Trend_Forecaster", "AGENT_RUNNING", "Decoding market momentum..."
+        )
 
         prompt = f"""
         Analyze the market trends for this business idea.
@@ -52,7 +61,4 @@ class TrendForecasterAgent(BaseAgent):
             agent_name="Trend_Forecaster",
         )
 
-        return {
-            "trend_data": result,
-            "scraped_data": {"trend_forecaster": raw_data}
-        }
+        return {"trend_data": result, "scraped_data": {"trend_forecaster": raw_data}}

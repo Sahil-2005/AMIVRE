@@ -3,18 +3,19 @@ Module: auth.py
 """
 
 from datetime import datetime, timedelta
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
+from jose import JWTError, jwt
+from passlib.context import CryptContext
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from passlib.context import CryptContext
-from jose import jwt, JWTError
 
-from app.db.session import get_db
-from app.models.user import User
-from app.models.schemas import UserCreate, UserResponse, Token, RefreshTokenRequest
-from app.dependencies import get_current_user
 from app.config import settings
+from app.db.session import get_db
+from app.dependencies import get_current_user
+from app.models.schemas import RefreshTokenRequest, Token, UserCreate, UserResponse
+from app.models.user import User
 
 router = APIRouter()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

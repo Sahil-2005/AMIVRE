@@ -1,12 +1,13 @@
-import pytest
 from unittest.mock import patch
+
+import pytest
 from app.orchestrator.graph import graph
 from app.orchestrator.state import (
-    MarketScoutOutput,
-    SentimentOutput,
     CompetitorOutput,
-    TrendOutput,
+    MarketScoutOutput,
     RiskModelOutput,
+    SentimentOutput,
+    TrendOutput,
 )
 
 

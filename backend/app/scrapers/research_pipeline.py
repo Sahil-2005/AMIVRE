@@ -12,9 +12,10 @@ Performance Notes:
 
 import asyncio
 import logging
-from typing import List, Dict, Tuple
-from tavily import AsyncTavilyClient
+
 from crawl4ai import AsyncWebCrawler
+from tavily import AsyncTavilyClient
+
 from app.config import settings
 
 logger = logging.getLogger(__name__)
@@ -25,11 +26,11 @@ MAX_CHARS_PER_URL = 3000
 TOTAL_MAX_CHARS = 15000
 
 # Concurrency limits to stay within API quotas
-TAVILY_CONCURRENCY = 3      # Max simultaneous Tavily searches
-CRAWL_TIMEOUT_SECS = 15     # Per-URL timeout for Crawl4AI
+TAVILY_CONCURRENCY = 3  # Max simultaneous Tavily searches
+CRAWL_TIMEOUT_SECS = 15  # Per-URL timeout for Crawl4AI
 
 
-async def _tavily_search(queries: List[str]) -> List[str]:
+async def _tavily_search(queries: list[str]) -> list[str]:
     """Search Tavily for multiple queries concurrently and return a combined list of top URLs."""
     if not settings.TAVILY_API_KEY:
         logger.warning("TAVILY_API_KEY is not set. Cannot perform searches.")
@@ -39,11 +40,13 @@ async def _tavily_search(queries: List[str]) -> List[str]:
     urls = []
     semaphore = asyncio.Semaphore(TAVILY_CONCURRENCY)
 
-    async def _search_one(q: str) -> List[str]:
+    async def _search_one(q: str) -> list[str]:
         async with semaphore:
             try:
                 res = await client.search(query=q, search_depth="basic", max_results=3)
-                return [item["url"] for item in res.get("results", []) if item.get("url")]
+                return [
+                    item["url"] for item in res.get("results", []) if item.get("url")
+                ]
             except Exception as e:
                 logger.error(f"Tavily search failed for query '{q}': {e}")
                 return []
@@ -56,7 +59,7 @@ async def _tavily_search(queries: List[str]) -> List[str]:
     return urls
 
 
-def _clean_urls(urls: List[str]) -> List[str]:
+def _clean_urls(urls: list[str]) -> list[str]:
     """Deduplicate and clean the URL list."""
     # Deduplicate while preserving order
     seen = set()
@@ -74,9 +77,11 @@ def _truncate(text: str, limit: int) -> str:
     return text[:limit] + "..." if len(text) > limit else text
 
 
-async def _extract_content(urls: List[str], progress_callback=None) -> Tuple[str, List[Dict]]:
+async def _extract_content(
+    urls: list[str], progress_callback=None
+) -> tuple[str, list[dict]]:
     """Use Crawl4AI to visit URLs and extract clean Markdown content.
-    
+
     All URLs are processed in a single concurrent batch with individual timeouts
     to prevent one slow page from blocking the entire batch.
     """
@@ -92,11 +97,12 @@ async def _extract_content(urls: List[str], progress_callback=None) -> Tuple[str
             """Crawl a single URL with a timeout."""
             try:
                 return await asyncio.wait_for(
-                    crawler.arun(url=url),
-                    timeout=CRAWL_TIMEOUT_SECS
+                    crawler.arun(url=url), timeout=CRAWL_TIMEOUT_SECS
                 )
             except asyncio.TimeoutError:
-                logger.warning(f"Crawl4AI timed out after {CRAWL_TIMEOUT_SECS}s for {url}")
+                logger.warning(
+                    f"Crawl4AI timed out after {CRAWL_TIMEOUT_SECS}s for {url}"
+                )
                 return None
             except Exception as e:
                 logger.error(f"Crawl4AI failed for {url}: {e}")
@@ -108,7 +114,9 @@ async def _extract_content(urls: List[str], progress_callback=None) -> Tuple[str
             url = urls[idx]
             if progress_callback:
                 # Strip http/https and truncate URL for clean UI display
-                clean_url = url.replace("https://", "").replace("http://", "").split("/")[0]
+                clean_url = (
+                    url.replace("https://", "").replace("http://", "").split("/")[0]
+                )
                 progress_callback(f"Scraping: {clean_url}...")
 
             if result is None:
@@ -133,19 +141,24 @@ async def _extract_content(urls: List[str], progress_callback=None) -> Tuple[str
     return final_context, raw_data
 
 
-async def run_pipeline(queries: List[str], progress_callback=None) -> Tuple[str, List[Dict]]:
+async def run_pipeline(
+    queries: list[str], progress_callback=None
+) -> tuple[str, list[dict]]:
     """
     Executes the full agentic pipeline for a given set of queries.
     Returns the truncated Markdown string and the raw data dictionary for the frontend.
     """
     logger.info(f"Running pipeline with queries: {queries}")
-    if progress_callback: progress_callback("Searching web via Tavily...")
+    if progress_callback:
+        progress_callback("Searching web via Tavily...")
     urls = await _tavily_search(queries)
     clean_urls = _clean_urls(urls)
 
-    if progress_callback: progress_callback(f"Found {len(clean_urls)} sources. Extracting content...")
+    if progress_callback:
+        progress_callback(f"Found {len(clean_urls)} sources. Extracting content...")
     logger.info(f"Extracting content for {len(clean_urls)} URLs.")
     context_string, raw_data = await _extract_content(clean_urls, progress_callback)
 
-    if progress_callback: progress_callback("Analyzing extracted data with Gemini...")
+    if progress_callback:
+        progress_callback("Analyzing extracted data with Gemini...")
     return context_string, raw_data

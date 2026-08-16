@@ -15,20 +15,19 @@ while scraping still happens fully concurrently.
 """
 
 import json
-import time
 import logging
 import threading
-import redis
-from app.config import settings
+import time
 
-from langgraph.graph import StateGraph, START, END
-from app.orchestrator.state import AgentState
+from langgraph.graph import END, START, StateGraph
 
-from app.agents.market_scout import MarketScoutAgent
-from app.agents.sentiment_analyst import SentimentAnalystAgent
 from app.agents.competitor_tracker import CompetitorTrackerAgent
-from app.agents.trend_forecaster import TrendForecasterAgent
+from app.agents.market_scout import MarketScoutAgent
+from app.agents.master_query_node import master_query_node
 from app.agents.risk_modeller import RiskModellerAgent
+from app.agents.sentiment_analyst import SentimentAnalystAgent
+from app.agents.trend_forecaster import TrendForecasterAgent
+from app.orchestrator.state import AgentState
 
 logger = logging.getLogger(__name__)
 
@@ -64,7 +63,13 @@ def _publish_agent_complete(job_id: str | None, agent_name: str):
     if not job_id:
         return
     try:
-        payload = json.dumps({"status": "AGENT_COMPLETE", "agent_name": agent_name, "message": f"{agent_name.replace('_', ' ')} finished."})
+        payload = json.dumps(
+            {
+                "status": "AGENT_COMPLETE",
+                "agent_name": agent_name,
+                "message": f"{agent_name.replace('_', ' ')} finished.",
+            }
+        )
         r = _get_redis()
         r.publish(f"progress:{job_id}", payload)
     except Exception as e:
@@ -73,28 +78,32 @@ def _publish_agent_complete(job_id: str | None, agent_name: str):
 
 def _make_node(agent, result_key: str):
     """Wrap an agent's run() with LLM stagger + AGENT_COMPLETE publishing."""
+
     def node(state: dict) -> dict:
         # Apply stagger delay before the LLM call to avoid Gemini rate limits.
         # The scraping portion runs first (no stagger), only the final LLM inference is staggered.
         delay = _get_stagger_delay()
         if delay > 0:
-            logger.info(f"Staggering {result_key} LLM call by {delay:.1f}s to avoid Gemini rate limits")
+            logger.info(
+                f"Staggering {result_key} LLM call by {delay:.1f}s to avoid Gemini rate limits"
+            )
             time.sleep(delay)
 
         result = agent.run(state)
         _publish_agent_complete(state.get("_job_id"), result_key)
         return result
+
     return node
 
 
 def _master_query_with_reset(state: dict) -> dict:
     """Run the master query node and reset the LLM stagger counter for the next parallel batch."""
-    from app.agents.master_query_node import master_query_node
+
     _reset_stagger()
     return master_query_node(state)
 
 
-from app.agents.master_query_node import master_query_node
+
 
 def build_graph():
     workflow = StateGraph(AgentState)
@@ -106,11 +115,17 @@ def build_graph():
     risk_modeller = RiskModellerAgent()
 
     workflow.add_node("Master_Query_Node", _master_query_with_reset)
-    workflow.add_node("Market_Scout",      _make_node(market_scout,      "Market_Scout"))
-    workflow.add_node("Sentiment_Analyst", _make_node(sentiment_analyst, "Sentiment_Analyst"))
-    workflow.add_node("Competitor_Tracker",_make_node(competitor_tracker,"Competitor_Tracker"))
-    workflow.add_node("Trend_Forecaster",  _make_node(trend_forecaster,  "Trend_Forecaster"))
-    workflow.add_node("Risk_Modeller",     _make_node(risk_modeller,     "Risk_Modeller"))
+    workflow.add_node("Market_Scout", _make_node(market_scout, "Market_Scout"))
+    workflow.add_node(
+        "Sentiment_Analyst", _make_node(sentiment_analyst, "Sentiment_Analyst")
+    )
+    workflow.add_node(
+        "Competitor_Tracker", _make_node(competitor_tracker, "Competitor_Tracker")
+    )
+    workflow.add_node(
+        "Trend_Forecaster", _make_node(trend_forecaster, "Trend_Forecaster")
+    )
+    workflow.add_node("Risk_Modeller", _make_node(risk_modeller, "Risk_Modeller"))
 
     # --- Fan-out: Master Query → All 4 agents in parallel ---
     workflow.add_edge(START, "Master_Query_Node")
@@ -120,10 +135,10 @@ def build_graph():
     workflow.add_edge("Master_Query_Node", "Trend_Forecaster")
 
     # --- Fan-in: All 4 agents converge → Risk Modeller ---
-    workflow.add_edge("Market_Scout",      "Risk_Modeller")
+    workflow.add_edge("Market_Scout", "Risk_Modeller")
     workflow.add_edge("Sentiment_Analyst", "Risk_Modeller")
-    workflow.add_edge("Competitor_Tracker","Risk_Modeller")
-    workflow.add_edge("Trend_Forecaster",  "Risk_Modeller")
+    workflow.add_edge("Competitor_Tracker", "Risk_Modeller")
+    workflow.add_edge("Trend_Forecaster", "Risk_Modeller")
 
     workflow.add_edge("Risk_Modeller", END)
 

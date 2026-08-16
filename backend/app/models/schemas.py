@@ -3,10 +3,12 @@ Module: schemas.py
 """
 
 import uuid
-from typing import Optional, List, Any
 from datetime import datetime
-from pydantic import BaseModel, EmailStr, Field, ConfigDict
-from app.models.analysis_job import JobStatus, JobDepth
+from typing import Any
+
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
+
+from app.models.analysis_job import JobDepth, JobStatus
 
 
 class UserCreate(BaseModel):
@@ -53,16 +55,16 @@ class AnalysisJobResponse(BaseModel):
     geography: str
     status: JobStatus
     depth: JobDepth
-    result_json: Optional[Any] = None
-    error_message: Optional[str] = None
+    result_json: Any | None = None
+    error_message: str | None = None
     created_at: datetime
-    completed_at: Optional[datetime] = None
+    completed_at: datetime | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
 
 class PaginatedAnalysisJobs(BaseModel):
-    items: List[AnalysisJobResponse]
+    items: list[AnalysisJobResponse]
     total: int
     page: int
     limit: int

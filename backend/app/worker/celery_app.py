@@ -5,11 +5,13 @@ Module: celery_app.py
 import asyncio
 import json
 import logging
+
 from celery import Celery
+from sqlalchemy import select
+
 from app.config import settings
 from app.db.session import AsyncSessionLocal
 from app.models import AnalysisJob, JobStatus
-from sqlalchemy import select
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +32,7 @@ async def _publish(job_id: str, payload: dict):
     """Publish a progress event to the Redis pub/sub channel for this job."""
     try:
         import redis
+
         sync_redis = redis.from_url(settings.REDIS_URL, decode_responses=True)
         sync_redis.publish(f"progress:{job_id}", json.dumps(payload))
         sync_redis.close()
@@ -48,7 +51,14 @@ async def _run_analysis_pipeline_stub(job_id: str) -> dict:
             await session.commit()
 
             # Signal frontend: all parallel agents are starting
-            await _publish(job_id, {"status": "RUNNING", "agent_name": None, "message": "Initializing intelligence agents..."})
+            await _publish(
+                job_id,
+                {
+                    "status": "RUNNING",
+                    "agent_name": None,
+                    "message": "Initializing intelligence agents...",
+                },
+            )
 
             try:
                 from app.orchestrator.graph import graph
@@ -80,13 +90,22 @@ async def _run_analysis_pipeline_stub(job_id: str) -> dict:
                 job.status = JobStatus.COMPLETED
 
                 # Signal frontend: fully done
-                await _publish(job_id, {"status": "COMPLETED", "agent_name": None, "message": "Analysis complete."})
+                await _publish(
+                    job_id,
+                    {
+                        "status": "COMPLETED",
+                        "agent_name": None,
+                        "message": "Analysis complete.",
+                    },
+                )
 
             except Exception as e:
                 logger.error(f"Job {job_id} failed: {e}")
                 job.status = JobStatus.FAILED
                 job.error_message = str(e)
-                await _publish(job_id, {"status": "FAILED", "agent_name": None, "message": str(e)})
+                await _publish(
+                    job_id, {"status": "FAILED", "agent_name": None, "message": str(e)}
+                )
             finally:
                 await session.commit()
     return {"status": "success", "job_id": job_id}

@@ -1,10 +1,10 @@
-import pytest
-from httpx import AsyncClient, ASGITransport
-from fastapi import status
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
-from app.main import app
+import pytest
 from app.api.routes.auth import get_db
+from app.main import app
+from fastapi import status
+from httpx import ASGITransport, AsyncClient
 
 
 async def override_get_db():
@@ -85,10 +85,11 @@ async def test_login_invalid_credentials():
 
 @pytest.mark.asyncio
 async def test_get_me_success():
+    import uuid
+    from datetime import datetime
+
     from app.dependencies import get_current_user
     from app.models.user import User
-    from datetime import datetime
-    import uuid
 
     async def override_get_current_user():
         user = User()

@@ -3,8 +3,10 @@ Module: user.py
 """
 
 import uuid
-from sqlalchemy import Column, String, Boolean
+
+from sqlalchemy import Boolean, Column, String
 from sqlalchemy.dialects.postgresql import UUID
+
 from app.db.base import Base
 
 

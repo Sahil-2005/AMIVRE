@@ -1,6 +1,7 @@
-from typing import Dict, Any, Optional, TypedDict, Annotated
+from typing import Annotated, Any, TypedDict
+
 from pydantic import BaseModel, Field
-import operator
+
 
 def merge_dicts(a: dict, b: dict) -> dict:
     if not isinstance(a, dict):
@@ -15,7 +16,9 @@ def merge_dicts(a: dict, b: dict) -> dict:
 class SourceInfo(BaseModel):
     title: str = Field(description="Title of the source or claim")
     url: str = Field(description="URL of the source")
-    platform: str = Field(description="Platform name (e.g., Wikipedia, Reddit, Google Play, Hacker News)")
+    platform: str = Field(
+        description="Platform name (e.g., Wikipedia, Reddit, Google Play, Hacker News)"
+    )
 
 
 # ----------------- Single Agent Output Schemas -----------------
@@ -32,31 +35,38 @@ class MarketScoutOutput(BaseModel):
     saturation_justification: str = Field(
         description="Why the market is or isn't saturated"
     )
-    sources: list[SourceInfo] = Field(description="Citations for claims made in the market analysis", default_factory=list)
+    sources: list[SourceInfo] = Field(
+        description="Citations for claims made in the market analysis",
+        default_factory=list,
+    )
 
 
 class SentimentOutput(BaseModel):
-    pain_points: list[Dict[str, Any]] = Field(
+    pain_points: list[dict[str, Any]] = Field(
         description="List of pain points with description and exact sentiment_score from -1.0 to 1.0"
     )
     top_desires: list[str] = Field(description="Top 5 user desires")
-    sources: list[SourceInfo] = Field(description="Citations for user sentiment claims", default_factory=list)
+    sources: list[SourceInfo] = Field(
+        description="Citations for user sentiment claims", default_factory=list
+    )
 
 
 class CompetitorOutput(BaseModel):
-    direct_competitors: list[Dict[str, str]] = Field(
+    direct_competitors: list[dict[str, str]] = Field(
         description="List of name and description of approx 5 direct competitors"
     )
-    indirect_competitors: list[Dict[str, str]] = Field(
+    indirect_competitors: list[dict[str, str]] = Field(
         description="List of name and description of approx 3 indirect competitors"
     )
-    feature_matrix: Dict[str, list[str]] = Field(
+    feature_matrix: dict[str, list[str]] = Field(
         description="Key features mapping to which competitors have them"
     )
-    competitor_weaknesses: Dict[str, str] = Field(
+    competitor_weaknesses: dict[str, str] = Field(
         description="Mapping of competitor name to their primary weakness"
     )
-    sources: list[SourceInfo] = Field(description="Citations for competitor claims", default_factory=list)
+    sources: list[SourceInfo] = Field(
+        description="Citations for competitor claims", default_factory=list
+    )
 
 
 class TrendOutput(BaseModel):
@@ -65,7 +75,9 @@ class TrendOutput(BaseModel):
     )
     sub_topics: list[str] = Field(description="Detect rising sub-topics in the market")
     seasonal_patterns: str = Field(description="Identified seasonal demand patterns")
-    sources: list[SourceInfo] = Field(description="Citations for trend claims", default_factory=list)
+    sources: list[SourceInfo] = Field(
+        description="Citations for trend claims", default_factory=list
+    )
 
 
 class RiskModelOutput(BaseModel):
@@ -96,7 +108,7 @@ class AgentState(TypedDict):
     depth: str
 
     # Internal: passed by the Celery worker so agents can publish WebSocket events
-    _job_id: Optional[str]
+    _job_id: str | None
 
     # Pre-generated queries from the Master Query Node
     market_queries: list[str]
@@ -108,10 +120,10 @@ class AgentState(TypedDict):
     scraped_data: Annotated[dict, merge_dicts]
 
     # Partial outputs natively merged (no reducer needed because nodes will output dictionaries with these keys)
-    market_data: Optional[MarketScoutOutput]
-    sentiment_data: Optional[SentimentOutput]
-    competitor_data: Optional[CompetitorOutput]
-    trend_data: Optional[TrendOutput]
+    market_data: MarketScoutOutput | None
+    sentiment_data: SentimentOutput | None
+    competitor_data: CompetitorOutput | None
+    trend_data: TrendOutput | None
 
     # Final output
-    risk_assessment: Optional[RiskModelOutput]
+    risk_assessment: RiskModelOutput | None

@@ -3,18 +3,20 @@ Module: analysis.py
 """
 
 import uuid
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.db.session import get_db
-from app.models.user import User
+from app.dependencies import get_current_user, rate_limit
 from app.models.analysis_job import AnalysisJob, JobStatus
 from app.models.schemas import (
-    AnalysisSubmitRequest,
     AnalysisJobResponse,
+    AnalysisSubmitRequest,
     PaginatedAnalysisJobs,
 )
-from app.dependencies import get_current_user, rate_limit
+from app.models.user import User
 from app.worker.celery_app import run_analysis_pipeline
 
 router = APIRouter()
@@ -117,4 +119,3 @@ async def delete_analysis(
 
     await db.delete(job)
     await db.commit()
-    return None

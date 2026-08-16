@@ -2,17 +2,19 @@
 Module: websocket.py
 """
 
-import json
 import asyncio
+import json
+
 from fastapi import (
     APIRouter,
+    HTTPException,
+    Query,
     WebSocket,
     WebSocketDisconnect,
-    Query,
-    HTTPException,
     status,
 )
-from jose import jwt, JWTError
+from jose import JWTError, jwt
+
 from app.config import settings
 from app.dependencies import redis_client
 
