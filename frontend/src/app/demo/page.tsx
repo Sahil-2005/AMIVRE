@@ -1,3 +1,6 @@
+"use client";
+
+import { motion } from "framer-motion";
 import {
   ArrowRight,
   Lightbulb,
@@ -427,11 +430,23 @@ function Snapshot() {
   return (
     <section className="mt-8">
       <SectionLabel>EXECUTIVE SNAPSHOT</SectionLabel>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <motion.div 
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-50px" }}
+        variants={{
+          visible: { transition: { staggerChildren: 0.1 } }
+        }}
+        className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6"
+      >
         {SNAPSHOT.map(({ icon: Icon, color, label, value, sub, chart }) => (
-          <div
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, scale: 0.95 },
+              visible: { opacity: 1, scale: 1 }
+            }}
             key={label}
-            className="rounded-xl border border-white/10 bg-[#080c18] p-4"
+            className="rounded-xl border border-white/10 bg-[#080c18] p-4 transition-all hover:border-[#8fa4ff]/30 hover:bg-[#0a0f1e]"
           >
             <div className="mb-3 flex items-center gap-2">
               <Icon className="h-4 w-4" style={{ color }} />
@@ -442,9 +457,9 @@ function Snapshot() {
             {chart === "line" && <MiniLine color={color} />}
             {chart === "areaLine" && <MiniAreaLine color={color} />}
             {chart === "dots" && <MiniDots color={color} />}
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     </section>
   );
 }
@@ -504,9 +519,24 @@ function Timeline() {
   return (
     <section className="mt-8">
       <SectionLabel>AGENT ACTIVITY TIMELINE</SectionLabel>
-      <div className="flex items-center justify-between rounded-xl border border-white/10 bg-[#080c18] px-6 py-5">
+      <motion.div 
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        variants={{
+          visible: { transition: { staggerChildren: 0.2 } }
+        }}
+        className="flex items-center justify-between rounded-xl border border-white/10 bg-[#080c18] px-6 py-5 overflow-x-auto"
+      >
         {TIMELINE.map(({ icon: Icon, title, time }, i) => (
-          <div key={title} className="flex items-center">
+          <motion.div 
+            variants={{
+              hidden: { opacity: 0, x: -20 },
+              visible: { opacity: 1, x: 0 }
+            }}
+            key={title} 
+            className="flex items-center min-w-[120px]"
+          >
             <div className="flex flex-col items-center text-center">
               <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full border border-[#3a5bff]/50 bg-[#0a0f1e]">
                 <Icon className="h-4 w-4 text-[#8fa4ff]" />
@@ -520,9 +550,9 @@ function Timeline() {
             {i < TIMELINE.length - 1 && (
               <div className="mx-3 hidden h-px w-10 border-t border-dashed border-white/15 sm:block" />
             )}
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     </section>
   );
 }
@@ -531,12 +561,28 @@ function Timeline() {
 
 function IntelligenceGrid() {
   return (
-    <section className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-4">
-      <MarketIntelligencePanel />
-      <CompetitorPanel />
-      <SentimentPanel />
-      <TrendPanel />
-    </section>
+    <motion.section 
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: "-50px" }}
+      variants={{
+        visible: { transition: { staggerChildren: 0.15 } }
+      }}
+      className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-4"
+    >
+      <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}>
+        <MarketIntelligencePanel />
+      </motion.div>
+      <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}>
+        <CompetitorPanel />
+      </motion.div>
+      <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}>
+        <SentimentPanel />
+      </motion.div>
+      <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}>
+        <TrendPanel />
+      </motion.div>
+    </motion.section>
   );
 }
 
@@ -615,7 +661,7 @@ function Donut({
       {segments.map((s, i) => {
         const len = (s.value / 100) * c;
         const circle = (
-          <circle
+          <motion.circle
             key={i}
             cx="32"
             cy="32"
@@ -625,6 +671,10 @@ function Donut({
             strokeWidth="9"
             strokeDasharray={`${len} ${c - len}`}
             strokeDashoffset={-offset}
+            initial={{ strokeDasharray: `0 ${c}` }}
+            whileInView={{ strokeDasharray: `${len} ${c - len}` }}
+            viewport={{ once: true }}
+            transition={{ duration: 1.5, ease: "easeOut", delay: i * 0.2 }}
           />
         );
         offset += len;
@@ -710,7 +760,7 @@ function Arc({ value }: { value: number }) {
           strokeWidth="8"
           strokeLinecap="round"
         />
-        <path
+        <motion.path
           d="M 6 50 A 44 44 0 0 1 94 50"
           fill="none"
           stroke="#a78bfa"
@@ -718,6 +768,10 @@ function Arc({ value }: { value: number }) {
           strokeLinecap="round"
           strokeDasharray={c}
           strokeDashoffset={c - (c * value) / 100}
+          initial={{ strokeDashoffset: c }}
+          whileInView={{ strokeDashoffset: c - (c * value) / 100 }}
+          viewport={{ once: true }}
+          transition={{ duration: 1.5, ease: "easeOut" }}
         />
       </svg>
       <div className="absolute bottom-0 flex flex-col items-center">
@@ -738,11 +792,14 @@ function TrendPanel() {
       </p>
 
       <div className="mb-4 flex h-24 items-end gap-2">
-        {TREND_DATA.map((d) => (
+        {TREND_DATA.map((d, i) => (
           <div key={d.label} className="flex flex-1 flex-col items-center gap-1.5">
-            <div
+            <motion.div
+              initial={{ height: 0 }}
+              whileInView={{ height: `${(d.value / max) * 100}%` }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: i * 0.1, ease: "easeOut" }}
               className="w-full rounded-t-sm bg-gradient-to-t from-[#4c3fd6] to-[#8fa4ff]"
-              style={{ height: `${(d.value / max) * 100}%` }}
             />
             <span className="text-[10px] text-slate-500">{d.label}</span>
           </div>
@@ -768,13 +825,24 @@ function TrendPanel() {
 function RiskMatrix() {
   return (
     <section className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-[2.1fr_1fr]">
-      <div>
+      <motion.div
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-50px" }}
+        variants={{
+          visible: { transition: { staggerChildren: 0.15 } }
+        }}
+      >
         <SectionLabel>RISK MATRIX – TOP PRIORITY RISKS</SectionLabel>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {RISKS.map((r) => (
-            <div
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, y: 20 },
+                visible: { opacity: 1, y: 0 }
+              }}
               key={r.title}
-              className="rounded-xl border border-white/10 bg-[#080c18] p-4"
+              className="rounded-xl border border-white/10 bg-[#080c18] p-4 transition-all hover:border-rose-500/30 hover:bg-[#0a0f1e]"
             >
               <span
                 className={`mb-3 inline-block rounded-md border px-2 py-1 text-[10px] font-semibold ${r.levelColor}`}
@@ -799,10 +867,10 @@ function RiskMatrix() {
                   {r.score}
                 </span>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
-      </div>
+      </motion.div>
 
       <div className="rounded-xl border border-white/10 bg-[#080c18] p-5">
         <PanelLabel>MITIGATION STRATEGIES</PanelLabel>

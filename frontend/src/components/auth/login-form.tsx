@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/auth-store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { motion } from 'framer-motion';
 
 import { toast } from 'sonner';
 
@@ -39,7 +40,12 @@ export function LoginForm() {
   };
 
   return (
-    <div className="w-full">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+      className="w-full"
+    >
       <div className="mb-8 space-y-2 text-center lg:text-left">
         <h2 className="text-3xl font-bold tracking-tight text-white"> Welcome back </h2>
 <p className="text-[15px] text-slate-400"> Enter your credentials to access your dashboard. </p>
@@ -85,6 +91,6 @@ export function LoginForm() {
           </div>
         </div>
       </form>
-    </div>
+    </motion.div>
   );
 }

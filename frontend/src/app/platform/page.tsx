@@ -1,23 +1,14 @@
 import {
   ArrowRight,
-  ArrowUpRight,
   PieChart,
   Users,
   User,
   TrendingUp,
   Shield,
-  Lightbulb,
-  Rocket,
-  Share2,
-  Layers,
-  AlertTriangle,
-  FileText,
   Crosshair,
   MessageSquare,
   ShieldCheck,
-  Radar,
   BarChart3,
-  Gauge,
   type LucideIcon,
 } from "lucide-react";
 
@@ -61,49 +52,6 @@ const CAPABILITIES: {
   },
 ];
 
-const PROCESS_STEPS: {
-  step: string;
-  icon: LucideIcon;
-  title: string;
-  copy: string;
-}[] = [
-  {
-    step: "STEP 01",
-    icon: Lightbulb,
-    title: "Define the Venture",
-    copy: "You provide your startup idea, target audience and geography.",
-  },
-  {
-    step: "STEP 02",
-    icon: Rocket,
-    title: "Deploy Agents",
-    copy: "AMIVRE launches specialized AI agents to research every dimension.",
-  },
-  {
-    step: "STEP 03",
-    icon: Share2,
-    title: "Parallel Intelligence",
-    copy: "Agents independently investigate markets, competitors, sentiment and trends.",
-  },
-  {
-    step: "STEP 04",
-    icon: Layers,
-    title: "Converging Intelligence",
-    copy: "Collected evidence is combined, validated and synthesized into a unified view.",
-  },
-  {
-    step: "STEP 05",
-    icon: AlertTriangle,
-    title: "Risk & Decision",
-    copy: "The system identifies critical failure points and suggests mitigation strategies.",
-  },
-  {
-    step: "STEP 06",
-    icon: FileText,
-    title: "Intelligence Report",
-    copy: "You receive a structured venture intelligence report with actionable insights.",
-  },
-];
 
 const AGENTS: {
   icon: LucideIcon;
@@ -423,39 +371,6 @@ function Capabilities() {
   );
 }
 
-/* --------------------------------- Process --------------------------------- */
-
-function Process() {
-  return (
-    <section className="mx-auto max-w-7xl px-6 py-20 lg:px-10">
-      <p className="mb-14 text-center text-xs font-semibold tracking-[0.25em] text-slate-400">
-        FROM IDEA TO <span className="text-[#8fa4ff]">INTELLIGENCE.</span>
-      </p>
-
-      <div className="grid grid-cols-2 gap-x-4 gap-y-14 sm:grid-cols-3 lg:grid-cols-6">
-        {PROCESS_STEPS.map(({ step, icon: Icon, title, copy }, i) => (
-          <div key={title} className="relative text-center">
-            {i < PROCESS_STEPS.length - 1 && (
-              <div className="absolute right-[-18%] top-8 hidden h-px w-[36%] border-t border-dashed border-white/15 lg:block" />
-            )}
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-[#3a5bff]/40 bg-[#0a0f1e]">
-              <Icon className="h-6 w-6 text-[#8fa4ff]" />
-            </div>
-            <p className="mb-2 text-[10px] font-semibold tracking-[0.2em] text-slate-500">
-              {step}
-            </p>
-            <h3 className="mb-2 text-[14px] font-semibold text-white">
-              {title}
-            </h3>
-            <p className="mx-auto max-w-[150px] text-[12px] leading-relaxed text-slate-400">
-              {copy}
-            </p>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
 
 /* ------------------------------- Agent Engine ------------------------------ */
 

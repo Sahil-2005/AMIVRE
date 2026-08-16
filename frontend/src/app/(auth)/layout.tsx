@@ -74,8 +74,8 @@ export default function AuthLayout({
         />
 
         {/* ambient glow */}
-        <div className="pointer-events-none absolute -left-[10%] -top-[20%] h-[70%] w-[70%] rounded-full bg-[#3a5bff]/20 blur-[120px]" />
-        <div className="pointer-events-none absolute right-[10%] top-[40%] h-[50%] w-[50%] rounded-full bg-[#5d7bff]/15 blur-[100px]" />
+        <div className="pointer-events-none absolute -left-[10%] -top-[20%] h-[70%] w-[70%] animate-pulse rounded-full bg-[#3a5bff]/20 blur-[120px]" style={{ animationDuration: '5s' }} />
+        <div className="pointer-events-none absolute right-[10%] top-[40%] h-[50%] w-[50%] animate-pulse rounded-full bg-[#5d7bff]/15 blur-[100px]" style={{ animationDuration: '7s' }} />
 
         <div className="relative z-10 flex items-center gap-3">
           <span className="text-lg font-bold tracking-wide text-[#aebfff]">

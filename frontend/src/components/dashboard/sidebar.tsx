@@ -94,7 +94,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BarChart3, LayoutDashboard, PlusCircle, Settings, Zap } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, Settings, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const links = [

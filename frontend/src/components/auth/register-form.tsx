@@ -6,6 +6,7 @@ import { authApi } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { motion } from 'framer-motion';
 
 import { toast } from 'sonner';
 
@@ -43,15 +44,20 @@ export function RegisterForm() {
   };
 
   return (
-    <div className="w-full">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+      className="w-full"
+    >
       <div className="mb-8 space-y-2 text-center lg:text-left">
-        <h2 className="text-3xl font-bold tracking-tight">Create an Account</h2>
-        <p className="text-muted-foreground">Sign up to start analyzing business ideas with AMIVRE.</p>
+        <h2 className="text-3xl font-bold tracking-tight text-white">Create an Account</h2>
+        <p className="text-[15px] text-slate-400">Sign up to start analyzing business ideas with AMIVRE.</p>
       </div>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email" className="text-sm font-medium text-slate-300">Email</Label>
             <Input
               id="email"
               type="email"
@@ -59,29 +65,29 @@ export function RegisterForm() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="h-11"
+              className="h-11 border-white/10 bg-[#0a0f1e] text-white placeholder:text-slate-600 focus-visible:border-[#5d7bff]/60 focus-visible:ring-[#5d7bff]/20"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password" className="text-sm font-medium text-slate-300">Password</Label>
             <Input
               id="password"
               type="password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="h-11"
+              className="h-11 border-white/10 bg-[#0a0f1e] text-white placeholder:text-slate-600 focus-visible:border-[#5d7bff]/60 focus-visible:ring-[#5d7bff]/20"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="confirm-password">Confirm Password</Label>
+            <Label htmlFor="confirm-password" className="text-sm font-medium text-slate-300">Confirm Password</Label>
             <Input
               id="confirm-password"
               type="password"
               required
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="h-11"
+              className="h-11 border-white/10 bg-[#0a0f1e] text-white placeholder:text-slate-600 focus-visible:border-[#5d7bff]/60 focus-visible:ring-[#5d7bff]/20"
             />
           </div>
         </div>
@@ -89,7 +95,7 @@ export function RegisterForm() {
           <Button type="submit" className="h-11 w-full bg-[#b7c6ff] text-base font-semibold text-[#0a0e1a] shadow-lg shadow-[#5d7bff]/20 transition-all hover:bg-[#c9d5ff] hover:shadow-[#5d7bff]/30" disabled={loading}>
             {loading ? 'Creating account...' : 'Sign up'}
           </Button>
-          <div className="text-sm text-center text-muted-foreground">
+          <div className="text-sm text-center text-slate-500">
             Already have an account?{' '}
             <Button variant="link" className="p-0 font-semibold text-[#8fa4ff] hover:text-[#a9bcff]" onClick={(e) => { e.preventDefault(); router.push('/login'); }}>
               Log in
@@ -97,6 +103,6 @@ export function RegisterForm() {
           </div>
         </div>
       </form>
-    </div>
+    </motion.div>
   );
 }

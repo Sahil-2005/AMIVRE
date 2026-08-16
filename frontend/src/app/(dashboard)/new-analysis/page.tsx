@@ -70,7 +70,7 @@ export default function NewAnalysisPage() {
               Analyze Your Venture
             </h1>
             <p className="mt-2.5 max-w-2xl text-sm leading-relaxed text-[#c3d0ff]/80">
-              Describe your venture and let AMIVRE's specialized AI agents research the market, competition, customer sentiment, trends, and risks for  delivering an evidence-backed intelligence report.
+              Describe your venture and let AMIVRE&apos;s specialized AI agents research the market, competition, customer sentiment, trends, and risks for  delivering an evidence-backed intelligence report.
             </p>
           </div>
         </div>
