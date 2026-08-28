@@ -162,7 +162,10 @@ async def _run_investor_pipeline(job_id: str) -> dict:
                 **(job.result_json or {}),
             }
 
-            investor_result = agent.run(research_context, job_id=str(job_id))
+            # Run agent in a separate thread so its internal asyncio.run() calls don't conflict with the current loop
+            investor_result = await asyncio.to_thread(
+                agent.run, research_context, job_id=str(job_id)
+            )
 
             # Serialize the result
             if hasattr(investor_result, "model_dump"):
