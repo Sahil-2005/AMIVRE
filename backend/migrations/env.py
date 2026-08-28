@@ -8,8 +8,9 @@ from logging.config import fileConfig
 from alembic import context
 from app.config import settings
 
-# This imports the Base to get all models
+# This imports the Base and models to populate metadata
 from app.db.base import Base
+import app.models  # noqa
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config

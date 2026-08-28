@@ -10,8 +10,9 @@ import { ReportTabs } from '@/components/analysis/report-tabs';
 import { ExecutiveSummary } from '@/components/analysis/executive-summary';
 import { ScrapedDataDrawer } from '@/components/analysis/scraped-data-drawer';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Download } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Download, Rocket, ExternalLink } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
 
 const fetchAnalysis = async (jobId: string): Promise<AnalysisJobResponse> => {
   const { data } = await apiClient.get<AnalysisJobResponse>(`/analysis/${jobId}`);
@@ -23,6 +24,7 @@ export default function AnalysisPage() {
   const router = useRouter();
   const jobId = params.jobId as string;
   const [forceReportView, setForceReportView] = useState(false);
+  const [triggeringInvestors, setTriggeringInvestors] = useState(false);
 
   // Poll if status is not COMPLETED or FAILED, unless we are forcing report view
   const { data: job, isLoading, isError, refetch } = useQuery({
@@ -36,6 +38,25 @@ export default function AnalysisPage() {
       return forceReportView ? false : 5000;
     }
   });
+
+  const handleFindInvestors = async () => {
+    setTriggeringInvestors(true);
+    try {
+      await apiClient.post(`/analysis/${jobId}/investors`);
+      toast.success('Investor discovery started!');
+      router.push(`/analysis/${jobId}/investors`);
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { detail?: string } } };
+      const detail = error?.response?.data?.detail || 'Failed to start investor discovery';
+      if (detail.includes('already running or completed')) {
+        router.push(`/analysis/${jobId}/investors`);
+      } else {
+        toast.error(detail);
+      }
+    } finally {
+      setTriggeringInvestors(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -122,6 +143,8 @@ export default function AnalysisPage() {
   const result = job.result_json;
   if (!result) return <div className="p-8 text-center text-muted-foreground">No result data available.</div>;
 
+  const hasInvestorData = job.investor_status !== null;
+
   return (
     <div className="mx-auto max-w-6xl flex flex-col gap-6 pb-12 animate-in fade-in-0 duration-700">
       {/* Premium Header Banner */}
@@ -183,6 +206,58 @@ export default function AnalysisPage() {
       />
 
       <ReportTabs data={result} />
+
+      {/* Phase 2: Investor Discovery CTA */}
+      <div className="relative rounded-3xl border border-[#5d7bff]/30 bg-gradient-to-br from-[#5d7bff]/10 via-[#0a0f1e] to-[#0a0f1e] overflow-hidden shadow-2xl">
+        <div className="absolute top-0 left-0 w-72 h-72 bg-[#5d7bff]/15 blur-[100px] pointer-events-none rounded-full" />
+        <div className="absolute bottom-0 right-0 w-56 h-56 bg-[#8fa4ff]/10 blur-[80px] pointer-events-none rounded-full" />
+        <div className="relative p-8 md:p-10 text-center space-y-5">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[#5d7bff]/40 bg-[#5d7bff]/10 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.2em] text-[#8fa4ff]">
+            <Rocket className="h-3.5 w-3.5" />
+            Phase 2 — Next Step
+          </div>
+          
+          <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight">
+            Your research is complete.{' '}
+            <span className="bg-gradient-to-r from-[#a9bcff] to-[#5d7bff] bg-clip-text text-transparent">
+              Ready to find investors?
+            </span>
+          </h2>
+          
+          <p className="text-sm text-slate-400 max-w-xl mx-auto leading-relaxed">
+            Our Investor Finder agent will analyze your venture profile, scrape investor databases,
+            and identify the best-matched VCs, angels, and accelerators for your startup.
+          </p>
+
+          {hasInvestorData ? (
+            <Button
+              onClick={() => router.push(`/analysis/${jobId}/investors`)}
+              className="h-12 px-8 rounded-xl bg-[#b7c6ff] text-base font-bold text-[#0a0e1a] shadow-lg shadow-[#5d7bff]/25 hover:bg-[#c9d5ff] hover:shadow-[#5d7bff]/35 transition-all gap-2"
+            >
+              View Investor Results
+              <ExternalLink className="h-4 w-4" />
+            </Button>
+          ) : (
+            <Button
+              onClick={handleFindInvestors}
+              disabled={triggeringInvestors}
+              className="h-12 px-8 rounded-xl bg-[#b7c6ff] text-base font-bold text-[#0a0e1a] shadow-lg shadow-[#5d7bff]/25 hover:bg-[#c9d5ff] hover:shadow-[#5d7bff]/35 transition-all gap-2"
+            >
+              {triggeringInvestors ? (
+                <>
+                  <div className="h-4 w-4 rounded-full border-2 border-[#0a0e1a] border-t-transparent animate-spin" />
+                  Starting...
+                </>
+              ) : (
+                <>
+                  Find Investors
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              )}
+            </Button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

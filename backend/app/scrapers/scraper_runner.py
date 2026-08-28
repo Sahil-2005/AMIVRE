@@ -43,3 +43,11 @@ async def build_trend_context(
     """Runs the research pipeline for Trend Forecaster."""
     context, raw_data = await run_pipeline(queries, progress_callback)
     return f"=== LIVE WEB INTELLIGENCE (Trend Data) ===\n{context}", raw_data
+
+
+async def build_investor_context(
+    queries: list[str], progress_callback=None
+) -> tuple[str, list[dict]]:
+    """Runs the research pipeline for Investor Finder (Phase 2)."""
+    context, raw_data = await run_pipeline(queries, progress_callback)
+    return f"=== LIVE WEB INTELLIGENCE (Investor Data) ===\n{context}", raw_data

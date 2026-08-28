@@ -97,6 +97,46 @@ class RiskModelOutput(BaseModel):
     # Risk Modeller doesn't scrape, it relies on the others' sources
 
 
+# --- Phase 2: Investor Discovery ---
+
+
+class InvestorProfile(BaseModel):
+    name: str = Field(description="Investor or firm name")
+    type: str = Field(description="Angel / VC / Micro-VC / Corporate VC / Accelerator")
+    focus_areas: list[str] = Field(description="Investment focus areas")
+    typical_check_size: str = Field(
+        description="Typical investment range, e.g., '$500K - $2M'"
+    )
+    portfolio_examples: list[str] = Field(
+        description="2-3 notable portfolio companies"
+    )
+    location: str = Field(description="Investor's base location")
+    relevance_score: int = Field(
+        ge=0, le=100, description="How well this investor matches the venture"
+    )
+    reasoning: str = Field(description="Why this investor is a good fit")
+    contact_url: str = Field(description="URL to their profile or website")
+    source: str = Field(description="Where this information was found")
+
+
+class InvestorFinderOutput(BaseModel):
+    matched_investors: list[InvestorProfile] = Field(
+        description="Ranked list of 8-12 matched investors"
+    )
+    funding_stage_recommendation: str = Field(
+        description="Recommended funding stage: Pre-Seed / Seed / Series A"
+    )
+    recommended_raise_amount: str = Field(
+        description="Suggested fundraising amount based on market and risk analysis"
+    )
+    pitch_angle_suggestions: list[str] = Field(
+        description="3-5 key angles to emphasize when pitching to these investors"
+    )
+    market_timing_assessment: str = Field(
+        description="Assessment of whether now is a good time to raise for this vertical"
+    )
+
+
 # ----------------- LangGraph State -----------------
 
 
@@ -127,3 +167,4 @@ class AgentState(TypedDict):
 
     # Final output
     risk_assessment: RiskModelOutput | None
+

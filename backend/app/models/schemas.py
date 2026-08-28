@@ -59,6 +59,10 @@ class AnalysisJobResponse(BaseModel):
     error_message: str | None = None
     created_at: datetime
     completed_at: datetime | None = None
+    # Phase 2: Investor Discovery
+    investor_status: JobStatus | None = None
+    investor_result_json: Any | None = None
+    investor_error_message: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

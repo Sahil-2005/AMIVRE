@@ -49,4 +49,13 @@ class AnalysisJob(Base):
     error_message = Column(Text, nullable=True)
     completed_at = Column(DateTime(timezone=True), nullable=True)
 
+    # Phase 2: Investor Discovery
+    investor_status = Column(
+        Enum(JobStatus, native_enum=False, length=50),
+        default=None,
+        nullable=True,
+    )
+    investor_result_json = Column(JSONB, nullable=True)
+    investor_error_message = Column(Text, nullable=True)
+
     user = relationship("User", backref="jobs")
