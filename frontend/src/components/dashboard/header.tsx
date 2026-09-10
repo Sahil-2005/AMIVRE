@@ -17,11 +17,6 @@ export function Header() {
   const { user, setUser, logout } = useAuthStore();
   const router = useRouter();
 
-  useEffect(() => {
-    if (!user) {
-      authApi.getMe().then(setUser).catch(() => {});
-    }
-  }, [user, setUser]);
 
   const handleLogout = () => {
     logout();

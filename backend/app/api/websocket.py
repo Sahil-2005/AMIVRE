@@ -59,11 +59,15 @@ async def websocket_progress(
                 ignore_subscribe_messages=True, timeout=1.0
             )
             if message:
-                data = json.loads(message["data"])
-                await websocket.send_json(data)
+                try:
+                    data = json.loads(message["data"])
+                    await websocket.send_json(data)
 
-                if data.get("status") in ["COMPLETED", "FAILED", "PARTIAL"]:
-                    break
+                    # Don't break if it's the investors phase, otherwise the WS closes during phase 2
+                    if data.get("status") in ["COMPLETED", "FAILED", "PARTIAL"] and data.get("phase") != "investors":
+                        break
+                except json.JSONDecodeError:
+                    pass
 
             # Tight polling for near-instant message relay
             await asyncio.sleep(0.1)

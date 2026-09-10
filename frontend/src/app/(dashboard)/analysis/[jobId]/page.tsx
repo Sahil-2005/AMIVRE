@@ -35,7 +35,7 @@ export default function AnalysisPage() {
       if (data && (data.status === 'COMPLETED' || data.status === 'FAILED')) {
         return false;
       }
-      return forceReportView ? false : 5000;
+      return forceReportView ? false : 10000;
     }
   });
 
@@ -78,7 +78,7 @@ export default function AnalysisPage() {
         <div className="p-8 bg-destructive/10 border border-destructive/20 rounded-2xl backdrop-blur-md">
           <h2 className="text-xl font-bold text-destructive mb-2">Analysis Not Found</h2>
           <p className="text-sm text-muted-foreground mb-6">The requested analysis job could not be retrieved or may have been removed.</p>
-          <Button onClick={() => router.push('/')} variant="outline" className="rounded-xl border-white/10">
+          <Button onClick={() => router.push('/dashboard')} variant="outline" className="rounded-xl border-white/10">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Return to Dashboard
           </Button>
@@ -94,7 +94,7 @@ export default function AnalysisPage() {
     return (
       <div className="mx-auto max-w-5xl py-6 md:py-10 space-y-6">
         <button
-          onClick={() => router.push('/')}
+          onClick={() => router.push('/dashboard')}
           className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors group px-1"
         >
           <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
@@ -116,7 +116,7 @@ export default function AnalysisPage() {
     return (
       <div className="mx-auto max-w-3xl py-12 space-y-6">
         <button
-          onClick={() => router.push('/')}
+          onClick={() => router.push('/dashboard')}
           className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors group px-1"
         >
           <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
@@ -152,7 +152,7 @@ export default function AnalysisPage() {
         <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 blur-3xl pointer-events-none rounded-full" />
         <div className="relative p-6 md:p-8">
           <button
-            onClick={() => router.push('/')}
+            onClick={() => router.push('/dashboard')}
             className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors mb-6 group uppercase tracking-wider"
           >
             <ArrowLeft className="h-3.5 w-3.5 group-hover:-translate-x-1 transition-transform" />

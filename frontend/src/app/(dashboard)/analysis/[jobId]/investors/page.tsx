@@ -37,8 +37,12 @@ export default function InvestorsPage() {
   // WebSocket for live progress
   useEffect(() => {
     if (!accessToken || !jobId) return;
-    if (data?.investor_status === 'COMPLETED' || data?.investor_status === 'FAILED') return;
 
+    // Only open WS if we don't already have one
+    if (wsRef.current) return;
+
+    // We can't synchronously check if it's already completed if data is still loading, 
+    // but the backend handles it by just not sending more messages.
     const baseUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000/api/v1/ws';
     const wsUrl = `${baseUrl}/${jobId}?token=${accessToken}`;
     const ws = new WebSocket(wsUrl);
@@ -50,14 +54,24 @@ export default function InvestorsPage() {
         if (msg.phase === 'investors' || msg.agent_name === 'Investor_Finder') {
           setWsMessages((prev) => [...prev, msg]);
         }
+        if (msg.status === 'COMPLETED' || msg.status === 'FAILED') {
+          ws.close();
+        }
       } catch { /* ignore */ }
     };
 
-    return () => {
+    ws.onerror = () => {
+      console.error("WebSocket error");
       ws.close();
+    };
+
+    return () => {
+      if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
+        ws.close();
+      }
       wsRef.current = null;
     };
-  }, [accessToken, jobId, data?.investor_status]);
+  }, [accessToken, jobId]);
 
   if (isLoading) {
     return (

@@ -162,8 +162,13 @@ export function useWebsocketProgress(jobId: string) {
     };
 
     ws.onclose = () => console.log('WebSocket connection closed');
+    ws.onerror = (err) => console.error('WebSocket connection error', err);
 
-    return () => ws.close();
+    return () => {
+      if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
+        ws.close();
+      }
+    };
   }, [jobId, accessToken]);
 
   return progress;
