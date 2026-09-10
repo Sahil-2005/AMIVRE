@@ -75,12 +75,24 @@ cp frontend/.env.example frontend/.env.local
 ```
 The frontend `.env.local` is pre-configured with the default local endpoints (`http://localhost:8000/api/v1`), so you don't need to change anything unless you are modifying ports.
 
-### Step 3: Start the Backend (Docker)
-From the root of the project, run:
+### Step 3: Manage the Backend (Docker)
+From the root of the project, you can use the following commands to manage the backend containers:
+
+**To build and start the containers in the background:**
 ```bash
 docker compose -f docker/docker-compose.yml up -d --build
 ```
 *Note: The first time you run this, it may take a few minutes to download the PostgreSQL/Redis images and install the Playwright Chromium browser for the web scraping worker.*
+
+**To start existing containers (without rebuilding):**
+```bash
+docker compose -f docker/docker-compose.yml up -d
+```
+
+**To stop and remove the containers:**
+```bash
+docker compose -f docker/docker-compose.yml down
+```
 
 > 💡 **Automated Migrations:** Once the containers start, the backend container will automatically run the database migrations (`alembic upgrade head`). You don't need to manually configure any tables!
 
