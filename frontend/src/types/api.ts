@@ -72,7 +72,39 @@ export interface AnalysisResult {
   competitor_data: CompetitorData
   trend_data: TrendData
   risk_assessment: RiskAssessment
-  scraped_data?: Record<string, any>
+  scraped_data?: Record<string, Array<{ url: string; content: string }>>
+}
+
+// Phase 2: Investor Discovery
+export interface InvestorProfile {
+  name: string
+  type: string
+  focus_areas: string[]
+  typical_check_size: string
+  portfolio_examples: string[]
+  location: string
+  relevance_score: number
+  reasoning: string
+  contact_url: string
+  source: string
+}
+
+export interface InvestorFinderResult {
+  matched_investors: InvestorProfile[]
+  funding_stage_recommendation: string
+  recommended_raise_amount: string
+  pitch_angle_suggestions: string[]
+  market_timing_assessment: string
+}
+
+export interface InvestorDiscoveryResponse {
+  job_id: string
+  investor_status: JobStatus | null
+  investor_result: InvestorFinderResult | null
+  investor_error: string | null
+  business_idea: string
+  target_market: string
+  geography: string
 }
 
 export interface AnalysisJobResponse {
@@ -87,6 +119,10 @@ export interface AnalysisJobResponse {
   error_message: string | null
   created_at: string
   completed_at: string | null
+  // Phase 2: Investor Discovery
+  investor_status: JobStatus | null
+  investor_result_json: InvestorFinderResult | null
+  investor_error_message: string | null
 }
 
 export interface PaginatedAnalysisJobs {

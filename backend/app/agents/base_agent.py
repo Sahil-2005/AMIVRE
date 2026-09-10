@@ -1,13 +1,23 @@
-import logging
 import json
-from typing import Type, Optional
-from pydantic import BaseModel
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_core.prompts import ChatPromptTemplate
-from app.config import settings
+import logging
+
 import redis
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_google_genai import ChatGoogleGenerativeAI
+from pydantic import BaseModel
+
+from app.config import settings
 
 logger = logging.getLogger(__name__)
+
+# Module-level Redis connection pool — reused by all agents across all publish calls.
+# Avoids the overhead of creating and closing a new TCP connection on every progress event.
+_redis_pool = redis.ConnectionPool.from_url(settings.REDIS_URL, decode_responses=True)
+
+
+def _get_redis():
+    """Return a Redis client backed by the shared connection pool."""
+    return redis.Redis(connection_pool=_redis_pool)
 
 
 class BaseAgent:
@@ -26,20 +36,23 @@ class BaseAgent:
             max_retries=3,
         )
 
-    def _publish_progress(self, job_id: Optional[str], agent_name: str, status: str, message: str = ""):
+    def _publish_progress(
+        self, job_id: str | None, agent_name: str, status: str, message: str = ""
+    ):
         """Publish an agent progress event to Redis for the WebSocket to broadcast."""
         if not job_id:
             return
         try:
-            payload = json.dumps({
-                "status": status,
-                "agent_name": agent_name,
-                "message": message,
-            })
-            # Use a fresh synchronous client to avoid thread/asyncio loop bounds issues
-            sync_redis = redis.from_url(settings.REDIS_URL, decode_responses=True)
-            sync_redis.publish(f"progress:{job_id}", payload)
-            sync_redis.close()
+            payload = json.dumps(
+                {
+                    "status": status,
+                    "agent_name": agent_name,
+                    "message": message,
+                }
+            )
+            # Reuse the module-level connection pool — no TCP overhead per call
+            r = _get_redis()
+            r.publish(f"progress:{job_id}", payload)
         except Exception as e:
             logger.warning(f"Could not publish progress event: {e}")
 
@@ -47,9 +60,9 @@ class BaseAgent:
         self,
         prompt_template: str,
         input_vars: dict,
-        output_schema: Type[BaseModel],
+        output_schema: type[BaseModel],
         context_string: str = "",
-        job_id: Optional[str] = None,
+        job_id: str | None = None,
         agent_name: str = "",
     ) -> BaseModel:
         """
@@ -95,9 +108,11 @@ class BaseAgent:
         safe_input_vars = {**input_vars, "human_prompt": grounded_prompt}
 
         try:
-            logger.info(f"Executing {self.__class__.__name__} with model {self.model_name}")
+            logger.info(
+                f"Executing {self.__class__.__name__} with model {self.model_name}"
+            )
             result = chain.invoke(safe_input_vars)
             return result
         except Exception as e:
-            logger.error(f"Error executing agent {self.__class__.__name__}: {str(e)}")
+            logger.error(f"Error executing agent {self.__class__.__name__}: {e!s}")
             raise e

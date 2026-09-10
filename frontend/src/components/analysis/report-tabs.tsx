@@ -32,20 +32,43 @@ export function ReportTabs({ data }: { data: AnalysisResult }) {
   const [active, setActive] = useState('risk');
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-6">
+      {/* Premium Tab Bar */}
+      <div className="relative rounded-2xl border border-white/10 bg-card/80 backdrop-blur-xl p-1.5 flex gap-1.5 overflow-x-auto scrollbar-none shadow-xl">
+        <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-primary/10 via-transparent to-transparent pointer-events-none" />
+        {TABS.map(tab => {
+          const Icon = tab.icon;
+          const isActive = active === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActive(tab.id)}
+              className={cn(
+                'relative flex items-center gap-2 px-5 py-3 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-300 flex-1 justify-center',
+                isActive
+                  ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30 scale-[1.01]'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
+              )}
+            >
+              <Icon className={cn('h-4 w-4 shrink-0', isActive ? 'text-primary-foreground' : 'text-muted-foreground')} />
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
       {/* Live Data Provenance Strip */}
-      <div className="rounded-xl border border-white/5 bg-card/50 px-4 py-3 flex items-center gap-3 flex-wrap">
-        <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider shrink-0">
-          <Database className="h-3 w-3" />
-          Live Sources
+      <div className="rounded-2xl border border-white/10 bg-card/40 backdrop-blur-md px-5 py-3 flex items-center gap-3 flex-wrap justify-between">
+        <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-wider shrink-0">
+          <Database className="h-3.5 w-3.5 text-primary" />
+          <span>Scraped Live Sources</span>
         </div>
-        <div className="w-px h-4 bg-white/10 shrink-0" />
         <div className="flex items-center gap-2 flex-wrap">
           {DATA_SOURCES.map(source => {
             const Icon = source.icon;
             return (
               <span key={source.label} className={cn(
-                'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold',
+                'inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold shadow-sm backdrop-blur-sm',
                 source.bg, source.color
               )}>
                 <Icon className="h-3 w-3" />
@@ -56,32 +79,8 @@ export function ReportTabs({ data }: { data: AnalysisResult }) {
         </div>
       </div>
 
-      {/* Premium Tab Bar */}
-      <div className="relative rounded-2xl border border-white/5 bg-card p-1.5 flex gap-1 overflow-x-auto scrollbar-none">
-        <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-primary/5 via-transparent to-transparent pointer-events-none" />
-        {TABS.map(tab => {
-          const Icon = tab.icon;
-          const isActive = active === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActive(tab.id)}
-              className={cn(
-                'relative flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all duration-200 flex-1 justify-center',
-                isActive
-                  ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
-              )}
-            >
-              <Icon className={cn('h-4 w-4 shrink-0', isActive ? 'text-primary-foreground' : '')} />
-              <span className="hidden sm:inline">{tab.label}</span>
-            </button>
-          );
-        })}
-      </div>
-
       {/* Tab Content */}
-      <div className="min-h-0">
+      <div className="min-h-0 animate-in fade-in-0 duration-300">
         {active === 'risk' && <RiskTab data={data.risk_assessment} />}
         {active === 'market' && <MarketTab data={data.market_data} />}
         {active === 'competitors' && <CompetitorsTab data={data.competitor_data} />}

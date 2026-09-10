@@ -1,11 +1,10 @@
 'use client';
 
 import { useAuthStore } from '@/stores/auth-store';
-import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
-import { Mail, Key, Shield, Calendar } from 'lucide-react';
+import { Mail, Key, Shield } from 'lucide-react';
 
 export default function ProfilePage() {
   const { user } = useAuthStore();

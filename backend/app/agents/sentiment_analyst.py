@@ -1,4 +1,5 @@
 import asyncio
+
 from app.agents.base_agent import BaseAgent
 from app.orchestrator.state import SentimentOutput
 
@@ -13,17 +14,28 @@ class SentimentAnalystAgent(BaseAgent):
         queries = state.get("sentiment_queries", [])
         job_id = state.get("_job_id")
 
-        self._publish_progress(job_id, "Sentiment_Analyst", "AGENT_RUNNING", "Analyzing sentiment via Tavily and Crawl4AI...")
+        self._publish_progress(
+            job_id,
+            "Sentiment_Analyst",
+            "AGENT_RUNNING",
+            "Analyzing sentiment via Tavily and Crawl4AI...",
+        )
 
         def progress_callback(msg: str):
             self._publish_progress(job_id, "Sentiment_Analyst", "AGENT_RUNNING", msg)
 
         from app.scrapers.scraper_runner import build_sentiment_context
+
         context_string, raw_data = asyncio.run(
             build_sentiment_context(queries, progress_callback)
         )
 
-        self._publish_progress(job_id, "Sentiment_Analyst", "AGENT_RUNNING", "Extracting pain points and desires...")
+        self._publish_progress(
+            job_id,
+            "Sentiment_Analyst",
+            "AGENT_RUNNING",
+            "Extracting pain points and desires...",
+        )
 
         prompt = f"""
         Analyze the following business idea and target market.
@@ -53,5 +65,5 @@ class SentimentAnalystAgent(BaseAgent):
 
         return {
             "sentiment_data": result,
-            "scraped_data": {"sentiment_analyst": raw_data}
+            "scraped_data": {"sentiment_analyst": raw_data},
         }

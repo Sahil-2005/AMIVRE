@@ -3,19 +3,21 @@ Module: analysis.py
 """
 
 import uuid
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.db.session import get_db
-from app.models.user import User
+from app.dependencies import get_current_user, rate_limit
 from app.models.analysis_job import AnalysisJob, JobStatus
 from app.models.schemas import (
-    AnalysisSubmitRequest,
     AnalysisJobResponse,
+    AnalysisSubmitRequest,
     PaginatedAnalysisJobs,
 )
-from app.dependencies import get_current_user, rate_limit
-from app.worker.celery_app import run_analysis_pipeline
+from app.models.user import User
+from app.worker.celery_app import run_analysis_pipeline, run_investor_pipeline
 
 router = APIRouter()
 
@@ -117,4 +119,67 @@ async def delete_analysis(
 
     await db.delete(job)
     await db.commit()
-    return None
+
+
+# --- Phase 2: Investor Discovery ---
+
+
+@router.post("/{job_id}/investors", status_code=status.HTTP_202_ACCEPTED)
+async def trigger_investor_discovery(
+    job_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Trigger Phase 2: Investor Finder for a completed analysis job."""
+    result = await db.execute(select(AnalysisJob).where(AnalysisJob.id == job_id))
+    job = result.scalar_one_or_none()
+
+    if not job or job.user_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    if job.status != JobStatus.COMPLETED:
+        raise HTTPException(
+            status_code=409,
+            detail="Research analysis must be completed before finding investors.",
+        )
+
+    if job.investor_status in [JobStatus.RUNNING, JobStatus.COMPLETED]:
+        raise HTTPException(
+            status_code=409,
+            detail="Investor discovery is already running or completed for this job.",
+        )
+
+    job.investor_status = JobStatus.PENDING
+    await db.commit()
+
+    run_investor_pipeline.delay(str(job.id))
+
+    return {
+        "job_id": str(job.id),
+        "investor_status": JobStatus.PENDING.value,
+        "message": "Investor discovery started",
+    }
+
+
+@router.get("/{job_id}/investors")
+async def get_investor_results(
+    job_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Get investor discovery results for a job."""
+    result = await db.execute(select(AnalysisJob).where(AnalysisJob.id == job_id))
+    job = result.scalar_one_or_none()
+
+    if not job or job.user_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    return {
+        "job_id": str(job.id),
+        "investor_status": job.investor_status.value if job.investor_status else None,
+        "investor_result": job.investor_result_json,
+        "investor_error": job.investor_error_message,
+        "business_idea": job.business_idea,
+        "target_market": job.target_market,
+        "geography": job.geography,
+    }

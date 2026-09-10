@@ -30,111 +30,82 @@
 - **Live Web Scraping**: Agents autonomously browse Wikipedia, Hacker News, Reddit, Google Play, and Google Trends to ground their analysis in reality.
 - **Multi-Agent Orchestration**: Powered by LangGraph, five specialized AI personas work in parallel to build a comprehensive risk model.
 - **Asynchronous Architecture**: Heavy ML workloads and web scraping are pushed to distributed Celery workers, keeping the FastAPI backend lightning fast.
+- **Investor Discovery Phase 2**: Matches the analyzed venture against top VC funds and angels by scanning the web for investment focuses and recent deals.
 
 ---
 
-## 🧠 The Agent Swarm
+## 🚀 Getting Started (Foolproof Guide)
 
-The LangGraph orchestration pipeline coordinates a Master Query Node and five distinct AI agents:
+We use a split architecture for maximum performance and developer experience: the heavy backend services run completely within Docker, while the Next.js frontend runs natively to provide lightning-fast hot-reloading.
 
-0. 🧠 **Master Query Node**: Pre-generates highly targeted Google Search queries for all downstream agents in a single, efficient LLM call.
-1. 🌐 **Market Scout**: Executes autonomous web research to calculate TAM/SAM/SOM and market saturation.
-2. 💬 **Sentiment Analyst**: Pulls live user discussions and reviews across the web to gauge raw user pain points and desires.
-3. ⚔️ **Competitor Tracker**: Maps the direct/indirect competitive battlefield and builds a feature matrix using real-world public data.
-4. 📈 **Trend Forecaster**: Queries the web for market momentum, developer chatter, and seasonal demand fluctuations.
-5. 🛡️ **Risk Modeller**: Synthesizes the outputs of all other agents into a final Venture Risk Score (0-100) and produces actionable mitigation strategies.
-
----
-
-## 🛠️ Tech Stack
-
-### Frontend (User Experience)
-- **Framework**: Next.js 14 (App Router), React
-- **Styling**: TailwindCSS, Shadcn/UI (Dark mode glassmorphism aesthetics)
-- **Real-Time**: WebSockets for live-agent progress tracking
-
-### Backend (Intelligence Engine)
-- **API**: FastAPI (Python 3.11+)
-- **AI/Orchestration**: LangChain, LangGraph, Google Gemini Pro 1.5 Flash
-- **Agentic Pipeline**: Tavily Search API, Crawl4AI (Async JS-rendering)
-- **Task Queue**: Celery with Redis broker (Async task processing)
-- **Database**: PostgreSQL (SQLAlchemy + Alembic async drivers)
-- **Vector DB**: Qdrant (Ready for future RAG expansions)
-
----
-
-## 🚀 Getting Started
-
-To ensure maximum performance on local machines (especially Windows/WSL), AMIVRE uses a split architecture: the heavy backend services run in Docker, while the Next.js frontend runs natively to provide lightning-fast hot-reloading.
+**The setup process is designed to be completely automatic. You do not need to manually configure databases or run migrations.**
 
 ### Prerequisites
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Running and active)
-- [Node.js 18+](https://nodejs.org/en/) (For the frontend)
-- A Google Gemini API Key (`GEMINI_API_KEY`)
-- A Tavily API Key (`TAVILY_API_KEY`)
+Before you start, make sure you have:
+1. [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running.
+2. [Node.js 18+](https://nodejs.org/en/) installed.
+3. API Keys for the AI agents:
+   - **Google Gemini API Key**: [Get one here (free)](https://aistudio.google.com/app/apikey)
+   - **Tavily Search API Key**: [Get one here (free)](https://tavily.com/)
 
-### 1. Clone the Repository
+---
+
+### Step 1: Clone the Repository
 ```bash
 git clone https://github.com/Sahil-2005/AMIVRE.git
 cd AMIVRE
 ```
 
-### 2. Configure Environment Variables
-You need to set up environment variables for **both** the backend and the frontend.
+### Step 2: Configure Environment Variables
+You must set up environment variables for both the backend and frontend. We have provided templates for both.
 
-**Backend Configuration:**
+**For the Backend:**
 ```bash
 cp backend/.env.example backend/.env
 ```
-Open `backend/.env` and add your API keys:
+Open `backend/.env` in your code editor and insert your actual API keys:
 ```env
 GEMINI_API_KEY=your_gemini_api_key_here
 TAVILY_API_KEY=your_tavily_api_key_here
 ```
 
-**Frontend Configuration:**
-Create a new file named `.env.local` inside the `frontend` directory:
+**For the Frontend:**
 ```bash
-# On Windows PowerShell:
-New-Item -Path frontend\.env.local -ItemType File
-
-# On Mac/Linux:
-touch frontend/.env.local
+cp frontend/.env.example frontend/.env.local
 ```
-Open `frontend/.env.local` and add the following lines to connect the UI to the Docker backend:
-```env
-NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
-NEXT_PUBLIC_WS_URL=ws://localhost:8000/api/v1/ws
-```
+The frontend `.env.local` is pre-configured with the default local endpoints (`http://localhost:8000/api/v1`), so you don't need to change anything unless you are modifying ports.
 
-### 3. Run the Backend Stack (Docker)
-We use Docker to spin up the FastAPI server, Celery worker, PostgreSQL, Redis, and Qdrant. 
+### Step 3: Start the Backend (Docker)
 From the root of the project, run:
 ```bash
 docker compose -f docker/docker-compose.yml up -d --build
 ```
-*Note: The first time you run this, it may take 5-10 minutes to build the Celery worker, as it downloads heavy Machine Learning libraries and Chromium for web scraping.*
+*Note: The first time you run this, it may take a few minutes to download the PostgreSQL/Redis images and install the Playwright Chromium browser for the web scraping worker.*
 
-You can verify the backend is running by visiting `http://localhost:8000/docs` to see the Swagger UI.
+> 💡 **Automated Migrations:** Once the containers start, the backend container will automatically run the database migrations (`alembic upgrade head`). You don't need to manually configure any tables!
 
-### 4. Run the Frontend (Native)
+You can verify the backend is running properly by visiting [http://localhost:8000/docs](http://localhost:8000/docs) in your browser to see the API swagger documentation.
+
+### Step 4: Start the Frontend (Native)
 Open a **new terminal window**, navigate to the frontend directory, install dependencies, and start the development server:
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-The interactive dashboard is now available at `http://localhost:3000`!
 
-## 📂 Architecture & Dataflow
+That's it! 🎉 The interactive dashboard is now live at [http://localhost:3000](http://localhost:3000).
 
-1. **Submission**: User submits a business idea via the Next.js frontend.
-2. **Delegation**: FastAPI enqueues a Celery task.
-3. **Orchestration**: Celery triggers the LangGraph state machine, starting with the Master Query Node.
-4. **Agentic Research**: Each agent takes its generated queries, searches via Tavily, and uses Crawl4AI (headless Chromium) to dynamically render and extract high-quality Markdown from live websites.
-5. **Prompt Injection**: The raw extracted Markdown is token-truncated (Quota Mitigation) and injected directly into the Gemini context windows.
-6. **Live Streaming**: As agents work, the backend pushes `AGENT_RUNNING` and `AGENT_COMPLETE` WebSocket events to the frontend, powering a real-time progress terminal.
-7. **Synthesis**: The Risk Modeller compiles the final report, which is saved to Postgres and displayed elegantly in the UI.
+---
+
+## 🛠️ Troubleshooting
+
+- **"WebSocket connection failed" in the browser console:**
+  Ensure the backend container is running (`docker ps`) and that `NEXT_PUBLIC_WS_URL` in your `frontend/.env.local` is exactly `ws://localhost:8000/api/v1/ws`.
+- **Database Connection Errors:**
+  If the FastAPI container complains about connecting to Postgres, it might be starting too fast. Docker Compose handles the dependencies, but you can always restart the backend container: `docker compose -f docker/docker-compose.yml restart backend worker`.
+- **"asyncio.run() cannot be called from a running event loop":**
+  This happens if you run the worker outside of Docker natively. The Celery worker must be run inside Docker using the provided `Dockerfile.celery` to manage thread boundaries correctly.
 
 ---
 
@@ -147,8 +118,3 @@ The interactive dashboard is now available at `http://localhost:3000`!
 [![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Sahil-2005)
 [![LeetCode](https://img.shields.io/badge/LeetCode-FFA116?style=for-the-badge&logo=leetcode&logoColor=white)](https://leetcode.com/u/sahilgawade4321/)
 [![Email](https://img.shields.io/badge/Email-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:gawadesahil.dev@gmail.com)
-
----
-
-## 📜 Specifications
-Read the full system details and initial requirements in [AMIVRE_SRS.docx](./AMIVRE_SRS.docx).

@@ -1,4 +1,5 @@
 import asyncio
+
 from app.agents.base_agent import BaseAgent
 from app.orchestrator.state import MarketScoutOutput
 
@@ -14,7 +15,12 @@ class MarketScoutAgent(BaseAgent):
         queries = state.get("market_queries", [])
         job_id = state.get("_job_id")
 
-        self._publish_progress(job_id, "Market_Scout", "AGENT_RUNNING", "Running autonomous market research via Tavily and Crawl4AI...")
+        self._publish_progress(
+            job_id,
+            "Market_Scout",
+            "AGENT_RUNNING",
+            "Running autonomous market research via Tavily and Crawl4AI...",
+        )
 
         # Progress callback to send live updates to frontend
         def progress_callback(msg: str):
@@ -22,11 +28,17 @@ class MarketScoutAgent(BaseAgent):
 
         # Run async scraper in a sync context
         from app.scrapers.scraper_runner import build_market_scout_context
+
         context_string, raw_data = asyncio.run(
             build_market_scout_context(queries, progress_callback)
         )
 
-        self._publish_progress(job_id, "Market_Scout", "AGENT_RUNNING", "Analyzing market sizing and saturation...")
+        self._publish_progress(
+            job_id,
+            "Market_Scout",
+            "AGENT_RUNNING",
+            "Analyzing market sizing and saturation...",
+        )
 
         prompt = f"""
         Analyze the following business idea and estimate the market sizing.
@@ -58,7 +70,4 @@ class MarketScoutAgent(BaseAgent):
             agent_name="Market_Scout",
         )
 
-        return {
-            "market_data": result,
-            "scraped_data": {"market_scout": raw_data}
-        }
+        return {"market_data": result, "scraped_data": {"market_scout": raw_data}}

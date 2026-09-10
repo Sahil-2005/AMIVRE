@@ -17,9 +17,9 @@ export function ExecutiveSummary({ risk, marketPhase }: { risk: RiskAssessment; 
       icon: <ShieldCheck className="h-5 w-5" />,
     };
     if (lower.includes('caution')) return {
-      gradient: 'from-amber-500/20 via-amber-500/5 to-transparent',
-      border: 'border-amber-500/30',
-      labelBg: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
+      gradient: 'from-purple-500/20 via-purple-500/5 to-transparent',
+      border: 'border-purple-500/30',
+      labelBg: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
       icon: <AlertTriangle className="h-5 w-5" />,
     };
     return {

@@ -2,11 +2,13 @@
 Module: analysis_job.py
 """
 
-import uuid
 import enum
-from sqlalchemy import Column, String, Text, Enum, ForeignKey, DateTime
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+import uuid
+
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, String, Text
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import relationship
+
 from app.db.base import Base
 
 
@@ -34,11 +36,26 @@ class AnalysisJob(Base):
     business_idea = Column(Text, nullable=False)
     target_market = Column(String, nullable=False)
     geography = Column(String, nullable=False)
-    status = Column(Enum(JobStatus, native_enum=False, length=50), default=JobStatus.PENDING, index=True)
-    depth = Column(Enum(JobDepth, native_enum=False, length=50), default=JobDepth.STANDARD)
+    status = Column(
+        Enum(JobStatus, native_enum=False, length=50),
+        default=JobStatus.PENDING,
+        index=True,
+    )
+    depth = Column(
+        Enum(JobDepth, native_enum=False, length=50), default=JobDepth.STANDARD
+    )
 
     result_json = Column(JSONB, nullable=True)
     error_message = Column(Text, nullable=True)
     completed_at = Column(DateTime(timezone=True), nullable=True)
+
+    # Phase 2: Investor Discovery
+    investor_status = Column(
+        Enum(JobStatus, native_enum=False, length=50),
+        default=None,
+        nullable=True,
+    )
+    investor_result_json = Column(JSONB, nullable=True)
+    investor_error_message = Column(Text, nullable=True)
 
     user = relationship("User", backref="jobs")

@@ -2,7 +2,7 @@
 Module: config.py
 """
 
-from typing import List
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -22,8 +22,8 @@ class Settings(BaseSettings):
     ANALYSIS_TIMEOUT_SECONDS: int = 900
     MAX_RETRIES: int = 3
     ENVIRONMENT: str = "development"
-    ALLOWED_ORIGINS: List[str] = ["http://localhost:3000"]
-    
+    ALLOWED_ORIGINS: list[str] = ["http://localhost:3000"]
+
     # Scraper Settings
     TAVILY_API_KEY: str
 

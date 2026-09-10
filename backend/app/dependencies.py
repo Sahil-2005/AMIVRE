@@ -3,13 +3,14 @@ Module: dependencies.py
 """
 
 from datetime import datetime
+
+import redis.asyncio as redis
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError, jwt
 from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-import redis.asyncio as redis
-from jose import jwt, JWTError
 
 from app.config import settings
 from app.db.session import get_db

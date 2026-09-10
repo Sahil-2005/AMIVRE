@@ -3,7 +3,6 @@
 import { useEffect } from 'react';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { useAuthStore } from '@/stores/auth-store';
 import { authApi } from '@/lib/auth';
 import { Moon, Sun, LogOut, User, Settings, ChevronDown } from 'lucide-react';
@@ -18,11 +17,6 @@ export function Header() {
   const { user, setUser, logout } = useAuthStore();
   const router = useRouter();
 
-  useEffect(() => {
-    if (!user) {
-      authApi.getMe().then(setUser).catch(() => {});
-    }
-  }, [user, setUser]);
 
   const handleLogout = () => {
     logout();

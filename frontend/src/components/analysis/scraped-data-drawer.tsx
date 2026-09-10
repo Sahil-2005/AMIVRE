@@ -10,11 +10,11 @@ import {
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Button } from "@/components/ui/button";
+
 import { FileSearch } from "lucide-react";
 
 interface ScrapedDataDrawerProps {
-  scrapedData?: Record<string, any>;
+  scrapedData?: Record<string, Array<{ url: string; content: string }>>;
 }
 
 export function ScrapedDataDrawer({ scrapedData }: ScrapedDataDrawerProps) {
@@ -22,11 +22,11 @@ export function ScrapedDataDrawer({ scrapedData }: ScrapedDataDrawerProps) {
 
   return (
     <Sheet>
-      <SheetTrigger className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 gap-2">
-        <FileSearch className="h-4 w-4" />
-        View Scraper Receipts
+      <SheetTrigger className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 px-4 py-2 text-sm font-semibold transition-all shadow-md">
+        <FileSearch className="h-4 w-4 text-primary" />
+        <span>Scraper Receipts</span>
       </SheetTrigger>
-      <SheetContent className="w-[400px] sm:w-[540px] sm:max-w-none flex flex-col h-full border-l border-white/10 bg-black/95 backdrop-blur-xl">
+      <SheetContent className="w-[400px] sm:w-[560px] sm:max-w-none flex flex-col h-full border-l border-white/10 bg-black/95 backdrop-blur-2xl">
         <SheetHeader className="mb-4">
           <SheetTitle className="text-xl font-bold tracking-tight text-white">Raw Scraper Data</SheetTitle>
           <SheetDescription className="text-white/60">

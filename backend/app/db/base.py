@@ -3,8 +3,9 @@ Module: base.py
 """
 
 from typing import Any
-from sqlalchemy.orm import DeclarativeBase, declared_attr
+
 from sqlalchemy import Column, DateTime, func
+from sqlalchemy.orm import DeclarativeBase, declared_attr
 
 
 class Base(DeclarativeBase):

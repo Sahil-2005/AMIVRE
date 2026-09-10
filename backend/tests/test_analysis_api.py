@@ -1,13 +1,13 @@
 import uuid
-import pytest
-from httpx import AsyncClient, ASGITransport
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
-from app.main import app
+import pytest
 from app.db.session import get_db
 from app.dependencies import get_current_user, rate_limit
-from app.models.user import User
+from app.main import app
 from app.models.analysis_job import JobDepth, JobStatus
+from app.models.user import User
+from httpx import ASGITransport, AsyncClient
 
 
 async def override_rate_limit():

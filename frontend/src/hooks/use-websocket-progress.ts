@@ -23,6 +23,8 @@ export interface ProgressState {
   };
 }
 
+const PARALLEL_AGENTS = ['Market_Scout', 'Sentiment_Analyst', 'Competitor_Tracker', 'Trend_Forecaster'] as const;
+
 const initialAgent: AgentProgressData = { status: 'WAITING', progress: 0, message: '', sources: [] };
 
 const initialState: ProgressState = {
@@ -40,6 +42,22 @@ const initialState: ProgressState = {
 
 function now() {
   return new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+}
+
+/**
+ * Calculate overall progress dynamically from individual agent progress.
+ * The 4 parallel agents account for 80% of the work, Risk Modeller accounts for 20%.
+ */
+function calculateOverallProgress(agents: ProgressState['agents']): number {
+  // Parallel agents contribute 80% total (20% each)
+  const parallelProgress = PARALLEL_AGENTS.reduce((sum, name) => {
+    return sum + (agents[name].progress / 100) * 20;
+  }, 0);
+
+  // Risk Modeller contributes the final 20%
+  const riskProgress = (agents.Risk_Modeller.progress / 100) * 20;
+
+  return Math.round(parallelProgress + riskProgress);
 }
 
 export function useWebsocketProgress(jobId: string) {
@@ -71,19 +89,18 @@ export function useWebsocketProgress(jobId: string) {
 
           if (message) {
             newState.activityLog = [
+              ...prev.activityLog,
               { time: now(), message, agent: agentName || 'System' },
-              ...prev.activityLog.slice(0, 19), // keep last 20 entries
-            ];
+            ].slice(-50); // Keep last 50 entries in chronological order
           }
 
           if (data.status === 'RUNNING' && prev.status === 'PENDING') {
-            // Job started — only the first agent (Market_Scout) should flip to RUNNING
+            // Job just started — mark overall as RUNNING
             newState.status = 'RUNNING';
-            newState.agents.Market_Scout = { ...newState.agents.Market_Scout, status: 'RUNNING', progress: 5, message: 'Initializing...' };
-            newState.overallProgress = 5;
 
           } else if (data.status === 'AGENT_RUNNING' && agentName && newState.agents[agentName]) {
-            // Live activity update for a specific agent
+            // Live activity update for a specific agent — agents self-report their running state.
+            // In parallel mode, multiple agents can be RUNNING simultaneously.
             const updatedSources = [...newState.agents[agentName].sources];
             if (message.startsWith('Scraping: ')) {
               const domain = message.replace('Scraping: ', '').replace('...', '').trim();
@@ -100,27 +117,24 @@ export function useWebsocketProgress(jobId: string) {
               message,
               sources: updatedSources,
               // Nudge the individual bar forward a bit
-              progress: Math.min(newState.agents[agentName].progress + 15, 85),
+              progress: Math.min(newState.agents[agentName].progress + 12, 85),
             };
 
           } else if (data.status === 'AGENT_COMPLETE' && agentName && newState.agents[agentName]) {
             newState.agents[agentName] = { ...newState.agents[agentName], status: 'COMPLETED', progress: 100, message: 'Done' };
 
-            // Cascade the RUNNING state to the next agent in the sequence
-            if (agentName === 'Market_Scout') {
-              newState.agents.Sentiment_Analyst = { ...newState.agents.Sentiment_Analyst, status: 'RUNNING', progress: 5, message: 'Initializing...' };
-              newState.overallProgress = 20;
-            } else if (agentName === 'Sentiment_Analyst') {
-              newState.agents.Competitor_Tracker = { ...newState.agents.Competitor_Tracker, status: 'RUNNING', progress: 5, message: 'Initializing...' };
-              newState.overallProgress = 40;
-            } else if (agentName === 'Competitor_Tracker') {
-              newState.agents.Trend_Forecaster = { ...newState.agents.Trend_Forecaster, status: 'RUNNING', progress: 5, message: 'Initializing...' };
-              newState.overallProgress = 60;
-            } else if (agentName === 'Trend_Forecaster') {
-              newState.agents.Risk_Modeller = { ...newState.agents.Risk_Modeller, status: 'RUNNING', progress: 10, message: 'Synthesizing final risk model...' };
-              newState.overallProgress = 80;
+            // Check if all 4 parallel agents are done — if so, Risk Modeller is next
+            const allParallelDone = PARALLEL_AGENTS.every(
+              name => newState.agents[name].status === 'COMPLETED'
+            );
+            if (allParallelDone && newState.agents.Risk_Modeller.status === 'WAITING') {
+              newState.agents.Risk_Modeller = {
+                ...newState.agents.Risk_Modeller,
+                status: 'RUNNING',
+                progress: 10,
+                message: 'Synthesizing final risk model...',
+              };
             }
-
 
           } else if (data.status === 'COMPLETED') {
             newState.status = 'COMPLETED';
@@ -137,6 +151,9 @@ export function useWebsocketProgress(jobId: string) {
             }
           }
 
+          // Recalculate overall progress from individual agents
+          newState.overallProgress = calculateOverallProgress(newState.agents);
+
           return newState;
         });
       } catch (err) {
@@ -145,8 +162,13 @@ export function useWebsocketProgress(jobId: string) {
     };
 
     ws.onclose = () => console.log('WebSocket connection closed');
+    ws.onerror = (err) => console.error('WebSocket connection error', err);
 
-    return () => ws.close();
+    return () => {
+      if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
+        ws.close();
+      }
+    };
   }, [jobId, accessToken]);
 
   return progress;

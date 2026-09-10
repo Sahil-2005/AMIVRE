@@ -5,9 +5,9 @@ import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import apiClient from '@/lib/api-client';
 import { PaginatedAnalysisJobs, AnalysisJobResponse } from '@/types/api';
-import { Badge } from '@/components/ui/badge';
+
 import { ChevronLeft, ChevronRight, ArrowRight, BarChart3 } from 'lucide-react';
-import { useAuthStore } from '@/stores/auth-store';
+
 
 const fetchAnalyses = async (page: number): Promise<PaginatedAnalysisJobs> => {
   const { data } = await apiClient.get<PaginatedAnalysisJobs>(`/analysis/?page=${page}&limit=10`);
@@ -32,7 +32,7 @@ const StatusBadge = ({ status }: { status: string }) => {
 export function AnalysisHistoryTable() {
   const [page, setPage] = useState(1);
   const router = useRouter();
-  const { user } = useAuthStore();
+
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['analyses', page],

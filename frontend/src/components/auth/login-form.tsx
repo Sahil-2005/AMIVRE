@@ -7,7 +7,8 @@ import { useAuthStore } from '@/stores/auth-store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { motion } from 'framer-motion';
+
 import { toast } from 'sonner';
 
 export function LoginForm() {
@@ -30,8 +31,8 @@ export function LoginForm() {
       setUser(user);
       
       toast.success('Logged in successfully');
-      router.push('/'); // Redirect to dashboard
-    } catch (error) {
+      router.push('/dashboard'); // Redirect to dashboard
+    } catch {
       toast.error('Invalid email or password');
     } finally {
       setLoading(false);
@@ -39,15 +40,20 @@ export function LoginForm() {
   };
 
   return (
-    <div className="w-full">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+      className="w-full"
+    >
       <div className="mb-8 space-y-2 text-center lg:text-left">
-        <h2 className="text-3xl font-bold tracking-tight">Welcome back</h2>
-        <p className="text-muted-foreground">Enter your credentials to access your dashboard.</p>
+        <h2 className="text-3xl font-bold tracking-tight text-white"> Welcome back </h2>
+<p className="text-[15px] text-slate-400"> Enter your credentials to access your dashboard. </p>
       </div>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email" className="text-sm font-medium text-slate-300"> Email </Label>
             <Input
               id="email"
               type="email"
@@ -55,12 +61,13 @@ export function LoginForm() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="h-11"
+              className="h-11 border-white/10 bg-[#0a0f1e] text-white placeholder:text-slate-600 focus-visible:border-[#5d7bff]/60 focus-visible:ring-[#5d7bff]/20"
+
             />
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password" className="text-sm font-medium text-slate-300"> Password </Label>
             </div>
             <Input
               id="password"
@@ -68,22 +75,22 @@ export function LoginForm() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="h-11"
+              className="h-11 border-white/10 bg-[#0a0f1e] text-white placeholder:text-slate-600 focus-visible:border-[#5d7bff]/60 focus-visible:ring-[#5d7bff]/20"
             />
           </div>
         </div>
         <div className="space-y-4 pt-2">
-          <Button type="submit" className="w-full h-11 text-base shadow-lg shadow-primary/20 transition-all hover:shadow-primary/30" disabled={loading}>
+          <Button type="submit" className="h-11 w-full bg-[#b7c6ff] text-base font-semibold text-[#0a0e1a] shadow-lg shadow-[#5d7bff]/20 transition-all hover:bg-[#c9d5ff] hover:shadow-[#5d7bff]/30" disabled={loading}>
             {loading ? 'Logging in...' : 'Login'}
-          </Button>
-          <div className="text-sm text-center text-muted-foreground">
-            Don&apos;t have an account?{' '}
-            <Button variant="link" className="p-0 font-semibold" onClick={(e) => { e.preventDefault(); router.push('/register'); }}>
+          </Button> 
+             <div className="text-center text-sm text-slate-500">
+                 Don&apos;t have an account?{' '}
+              <Button variant="link" className="p-0 font-semibold text-[#8fa4ff] hover:text-[#a9bcff]" onClick={(e) => { e.preventDefault(); router.push('/register'); }} >
               Sign up
             </Button>
           </div>
         </div>
       </form>
-    </div>
+    </motion.div>
   );
 }
